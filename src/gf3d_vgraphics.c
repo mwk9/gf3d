@@ -111,7 +111,6 @@ void gf3d_vgraphics_init(
     gf3d_vgraphics_semaphores_create();
 }
 
-
 void gf3d_vgraphics_setup(
     char *windowName,
     int renderWidth,
@@ -125,6 +124,7 @@ void gf3d_vgraphics_setup(
     Uint32 i;
     Uint32 enabledExtensionCount = 0;
     VkDeviceCreateInfo createInfo = {0};
+	VkResult result;
     
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
@@ -132,6 +132,7 @@ void gf3d_vgraphics_setup(
         return;
     }
     atexit(SDL_Quit);
+
     if (fullscreen)
     {
         if (renderWidth == 0)
@@ -185,9 +186,9 @@ void gf3d_vgraphics_setup(
     gf3d_vgraphics.vk_app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     gf3d_vgraphics.vk_app_info.pNext = NULL;
     gf3d_vgraphics.vk_app_info.pApplicationName = windowName;
-    gf3d_vgraphics.vk_app_info.applicationVersion = 0;
+    gf3d_vgraphics.vk_app_info.applicationVersion = VK_MAKE_VERSION(0,0,1);
     gf3d_vgraphics.vk_app_info.pEngineName = windowName;
-    gf3d_vgraphics.vk_app_info.engineVersion = 0;
+	gf3d_vgraphics.vk_app_info.engineVersion = VK_MAKE_VERSION(0, 0, 1);
     gf3d_vgraphics.vk_app_info.apiVersion = VK_API_VERSION_1_0;
     
     gf3d_vgraphics.vk_instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -213,9 +214,16 @@ void gf3d_vgraphics_setup(
     gf3d_vgraphics.vk_instance_info.enabledExtensionCount = enabledExtensionCount;
 
     // create instance
-    vkCreateInstance(&gf3d_vgraphics.vk_instance_info, NULL, &gf3d_vgraphics.vk_instance);
+	result = vkCreateInstance(&gf3d_vgraphics.vk_instance_info, NULL, &gf3d_vgraphics.vk_instance);
 
-    if (!gf3d_vgraphics.vk_instance)
+	if (result != VK_SUCCESS)
+	{
+		slog("failed to create a vulkan instance");
+		gf3d_vgraphics_close();
+		return;
+	}
+
+	if (gf3d_vgraphics.vk_instance == VK_NULL_HANDLE)
     {
         slog("failed to create a vulkan instance");
         gf3d_vgraphics_close();
@@ -425,7 +433,7 @@ Bool gf3d_vgraphics_device_validate(VkPhysicalDevice device)
     slog("apiVersion: %i",deviceProperties.apiVersion);
     slog("driverVersion: %i",deviceProperties.driverVersion);
     slog("supports Geometry Shader: %i",deviceFeatures.geometryShader);
-    return (deviceProperties.deviceType == GF3D_VGRAPHICS_DISCRETE)&&(deviceFeatures.geometryShader);
+    return /*(deviceProperties.deviceType == GF3D_VGRAPHICS_DISCRETE)&&*/(deviceFeatures.geometryShader);
 }
 
 VkPhysicalDevice gf3d_vgraphics_select_device()

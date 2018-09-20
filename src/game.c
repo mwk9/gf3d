@@ -15,7 +15,7 @@ int main(int argc,char *argv[])
     init_logger("gf3d.log");
     slog("gf3d begin");
     gf3d_vgraphics_init(
-        "gf3d",                 //program name
+        "Blarg",                 //program name
         1200,                   //screen width
         700,                    //screen height
         vector4d(0.51,0.75,1,1),//background color

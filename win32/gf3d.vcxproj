@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\djkehoe\git\gf3d\include;C:\Users\djkehoe\git\libs\VulkanSDK\1.1.82.1\Include;C:\Users\djkehoe\git\libs\SDL2_ttf-2.0.14\include;C:\Users\djkehoe\git\libs\SDL2_mixer-2.0.2\include;C:\Users\djkehoe\git\libs\SDL2_image-2.0.3\include;C:\Users\djkehoe\git\libs\SDL2-2.0.8\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\djkehoe\git\libs\VulkanSDK\1.1.82.1\Lib32;C:\Users\djkehoe\git\libs\SDL2_ttf-2.0.14\lib\x86;C:\Users\djkehoe\git\libs\SDL2_mixer-2.0.2\lib\x86;C:\Users\djkehoe\git\libs\SDL2_image-2.0.3\lib\x86;C:\Users\djkehoe\git\libs\SDL2-2.0.8\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\mattk\source\visual studio 2013\Projects\Fall2018_3D\Fall2018_3D\include;C:\Libraries\VulkanSDK\1.1.82.1\Include;C:\Libraries\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\include;C:\Libraries\SDL2_mixer-devel-2.0.2-VC\SDL2_mixer-2.0.2\include;C:\Libraries\SDL2_image-devel-2.0.3-VC\SDL2_image-2.0.3\include;C:\Libraries\SDL2-devel-2.0.8-VC\SDL2-2.0.8\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Libraries\VulkanSDK\1.1.82.1\Lib32;C:\Libraries\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86;C:\Libraries\SDL2_mixer-devel-2.0.2-VC\SDL2_mixer-2.0.2\lib\x86;C:\Libraries\SDL2_image-devel-2.0.3-VC\SDL2_image-2.0.3\lib\x86;C:\Libraries\SDL2-devel-2.0.8-VC\SDL2-2.0.8\lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>..</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -62,7 +62,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sdl2_ttf.lib;sdl2_mixer.lib;sdl2_image.lib;SDL2.lib;SDL2main.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2_ttf.lib;SDL2_mixer.lib;SDL2_image.lib;SDL2.lib;SDL2main.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
