@@ -16,6 +16,9 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{7d2d2012-d1be-4ada-a592-ed072f9064d7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="models">
+      <UniqueIdentifier>{c3e3a293-002e-4051-9a16-05d82e9206e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\gf3d_camera.h">
@@ -135,6 +138,12 @@
     </None>
     <None Include="shaders\test.frag">
       <Filter>shaders</Filter>
+    </None>
+    <None Include="models\cube.json">
+      <Filter>models</Filter>
+    </None>
+    <None Include="models\susanne.json">
+      <Filter>models</Filter>
     </None>
   </ItemGroup>
 </Project>

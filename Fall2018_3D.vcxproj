@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\Users\mattk\source\visual studio 2013\Projects\Fall2018_3D\Fall2018_3D\include;C:\Users\mattk\source\visual studio 2013\Projects\Fall2018_3D\Fall2018_3D\libs\include;C:\Libraries\SDL2-devel-2.0.8-VC\SDL2-2.0.8\include;C:\Libraries\SDL2_image-devel-2.0.3-VC\SDL2_image-2.0.3\include;C:\Libraries\SDL2_mixer-devel-2.0.2-VC\SDL2_mixer-2.0.2\include;C:\Libraries\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\include;C:\Libraries\VulkanSDK\1.1.82.1\Include;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(SolutionName)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(SolutionName)\</OutDir>
     <LibraryPath>C:\Libraries\SDL2-devel-2.0.8-VC\SDL2-2.0.8\lib\x86;C:\Libraries\SDL2_image-devel-2.0.3-VC\SDL2_image-2.0.3\lib\x86;C:\Libraries\SDL2_mixer-devel-2.0.2-VC\SDL2_mixer-2.0.2\lib\x86;C:\Libraries\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86;C:\Libraries\VulkanSDK\1.1.82.1\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -122,6 +122,8 @@
     <ClCompile Include="src\simple_logger.c" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="models\cube.json" />
+    <None Include="models\susanne.json" />
     <None Include="shaders\basic.frag" />
     <None Include="shaders\basic.vert" />
     <None Include="shaders\default.frag" />
