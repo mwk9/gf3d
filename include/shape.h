@@ -14,6 +14,22 @@ typedef struct cube_s
 	float x, y, z, w, h, d;
 }Cube;
 
+typedef enum
+{
+	ST_RECT,
+	ST_CUBE
+}ShapeType;
+
+typedef struct shape_s
+{
+	ShapeType type;
+	union
+	{
+		Rect r;
+		Cube c;
+	}s;
+}Shape;
+
 /**
  * @brief Allocates memory for a new Rect
  * @param x The x position of the top-left of the Rect
@@ -61,4 +77,4 @@ Uint8 rect_in_rect(Rect *a, Rect *b);
  */
 Uint8 cube_in_cube(Cube *a, Cube *b);
 
-#endif
+#endif // !__SHAPE__

@@ -64,4 +64,4 @@ void entity_update(Entity *self);
  */
 void entity_update_all();
 
-#endif
+#endif // !__ENTITY__

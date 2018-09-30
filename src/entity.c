@@ -1,6 +1,6 @@
 #include "entity.h"
 
-typedef struct
+typedef struct entityManager_s
 {
 	Uint32 maxEntities;
 	Entity *entityList;
@@ -29,19 +29,19 @@ void entity_system_init(Uint32 maxEntities)
 {
 	if (maxEntities <= 0)
 	{
-		slog("Error: Cannot initiy manager for zero or negative entities");
+		slog("Error: Cannot initialize Entity manager for zero or negative entities");
 		return;
 	}
 	
 	memset(&entityManager, 0, sizeof(EntityManager));
-	entityManager.entityList = (Entity *)malloc(sizeof(Entity)* maxEntities);
+	entityManager.entityList = (Entity *)malloc(sizeof(Entity) * maxEntities);
 	if (!entityManager.entityList)
 	{
 		slog("Error: Could not allocate memory of the entity list");
 		entity_system_close();
 		return;
 	}
-	memset(entityManager.entityList, 0, sizeof(Entity)* maxEntities);
+	memset(entityManager.entityList, 0, sizeof(Entity) * maxEntities);
 	entityManager.maxEntities = maxEntities;
 
 	slog("Entity system initialized");

@@ -101,6 +101,8 @@
     <ClInclude Include="include\gf3d_vector.h" />
     <ClInclude Include="include\gf3d_vgraphics.h" />
     <ClInclude Include="include\gf3d_vqueues.h" />
+    <ClInclude Include="include\mesh.h" />
+    <ClInclude Include="include\shape.h" />
     <ClInclude Include="include\simple_logger.h" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +121,8 @@
     <ClCompile Include="src\gf3d_vector.c" />
     <ClCompile Include="src\gf3d_vgraphics.c" />
     <ClCompile Include="src\gf3d_vqueues.c" />
+    <ClCompile Include="src\mesh.c" />
+    <ClCompile Include="src\shape.c" />
     <ClCompile Include="src\simple_logger.c" />
   </ItemGroup>
   <ItemGroup>

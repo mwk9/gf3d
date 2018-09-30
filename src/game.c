@@ -8,6 +8,7 @@
 #include "gf3d_camera.h"
 
 #include "entity.h"
+#include "mesh.h"
 
 int main(int argc,char *argv[])
 {
@@ -15,6 +16,7 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
 
 	entity_system_init(1024);
+	mesh_system_init(1024);
     
     init_logger("gf3d.log");
     slog("gf3d begin");
