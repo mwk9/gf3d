@@ -1,6 +1,7 @@
 #include "gf3d_pipeline.h"
 #include "gf3d_swapchain.h"
 #include "gf3d_shaders.h"
+#include "vertex.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -120,11 +121,15 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     VkPipelineShaderStageCreateInfo shaderStages[2];
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {0};
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {0};
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {0};
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {0}; //hey change this for vertex buffer
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {0};
     VkPipelineMultisampleStateCreateInfo multisampling = {0};
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {0};
     VkPipelineColorBlendStateCreateInfo colorBlending = {0};
+	Vert * vertex = vert_new(vector2d(0, 0), vector3d(0, 0, 0));
+	//Vert * vert_new(Vector2D position, Vector3D color);
+	VkVertexInputBindingDescription bindingDescription = getBindingDescription();
+	VkVertexInputAttributeDescription * attributeDescriptions = getAttributeDescriptions(vertex);
 
     pipe = gf3d_pipeline_new();
     if (!pipe)return NULL;
@@ -150,11 +155,16 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     shaderStages[0] = vertShaderStageInfo;
     shaderStages[1] = fragShaderStageInfo;
     
+	/*HEY CHANGE THIS FOR VERTEX BUFFER thanks future matt*/
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 0;
     vertexInputInfo.pVertexBindingDescriptions = NULL; // Optional
     vertexInputInfo.vertexAttributeDescriptionCount = 0;
     vertexInputInfo.pVertexAttributeDescriptions = NULL; // Optional    return pipe;
+	/*vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)sizeof(attributeDescriptions);
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions;*/
 
     // TODO: pull all this information from config file
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

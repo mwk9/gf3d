@@ -76,6 +76,8 @@ void gf3d_command_execute_render_pass(VkCommandBuffer commandBuffer, VkRenderPas
     VkClearValue clearColor = {0};
     VkRenderPassBeginInfo renderPassInfo = {0};
     VkCommandBufferBeginInfo beginInfo = {0};
+	VkDeviceSize offsets[] = { 0 };
+	VkBuffer vertexBuffers[] = { vertexBuffer };
     
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
@@ -103,16 +105,21 @@ void gf3d_command_execute_render_pass(VkCommandBuffer commandBuffer, VkRenderPas
     //instanceCount: Used for instanced rendering, use 1 if you're not doing that.
     //firstVertex: Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
     //firstInstance: Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    
+	//wait i'm messing with things
+	//vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+	
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0); //change to numver of verts
     vkCmdEndRenderPass(commandBuffer);
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {
         slog("failed to record command buffer!");
     }
-    else
-    {
-        slog("created renderpass command");
-    }
+	else
+	{
+		slog("created renderpass command");
+	}
+	
 }
 
 void gf3d_command_buffer_begin(Pipeline *pipe)

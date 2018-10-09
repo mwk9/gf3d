@@ -101,7 +101,7 @@ void gf3d_vgraphics_init(
     device = gf3d_vgraphics_get_default_logical_device();
     
     gf3d_pipeline_init(2);
-    
+	//vertex_system_init();
     gf3d_vgraphics.pipe = gf3d_pipeline_graphics_load(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent());
 
     gf3d_swapchain_setup_frame_buffers(gf3d_vgraphics.pipe);
@@ -109,6 +109,7 @@ void gf3d_vgraphics_init(
     gf3d_command_pool_setup(device,gf3d_swapchain_get_frame_buffer_count(),gf3d_vgraphics.pipe);
     
 	//create vertex buffer?
+	//vertex_system_init();
 
     gf3d_vgraphics_semaphores_create();
 }
@@ -542,5 +543,71 @@ void gf3d_vgraphics_semaphores_create()
     }
     atexit(gf3d_vgraphics_semaphores_close);
 }
+
+void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice size)
+{
+	VkCommandBufferAllocateInfo allocInfo = { 0 };
+	VkCommandBuffer commandBuffer;
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = 1;
+	vkAllocateCommandBuffers(gf3d_vgraphics.device, &allocInfo, &commandBuffer);
+}
+
+VkPhysicalDevice gf3d_vgraphics_get_default_physical_device()
+{
+	return gf3d_vgraphics.gpu;
+}
+
+uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags prop)
+{
+	VkPhysicalDeviceMemoryProperties memProp;
+	int i = 0;
+	vkGetPhysicalDeviceMemoryProperties(gf3d_vgraphics_get_default_physical_device(), &memProp);
+	for (i = 0; i < memProp.memoryTypeCount; i++)
+	{
+		if ((typeFilter & (1 << i)) && ((memProp.memoryTypes[i].propertyFlags & prop) == prop))
+		{
+			return i;
+		}
+	}
+
+	slog("Error: Failed to find suitable memory type");
+	return 0;
+}
+
+int create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer * buffer, VkDeviceMemory * bufferMemory)
+{
+	VkBufferCreateInfo bufferInfo = { 0 };
+	VkMemoryRequirements memRequirements;
+	VkMemoryAllocateInfo allocInfo = { 0 };
+
+	bufferInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(gf3d_vgraphics.device, &bufferInfo, NULL, buffer) != VK_SUCCESS)
+	{
+		slog("Error: failed to create buffer");
+		return 0;
+	}
+
+	vkGetBufferMemoryRequirements(gf3d_vgraphics.device, *buffer, &memRequirements);
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = find_memory_type(memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(gf3d_vgraphics.device, &allocInfo, NULL, bufferMemory) != VK_SUCCESS)
+	{
+		slog("Error: Failed to allocate buffer memory");
+		return 0;
+	}
+
+	vkBindBufferMemory(gf3d_vgraphics.device, *buffer, *bufferMemory, 0);
+	return 1;
+}
+
 /*eol@eof*/
 

@@ -5,6 +5,7 @@
 
 #include "gf3d_types.h"
 #include "gf3d_pipeline.h"
+#include "vertex.h"
 
 /**
  * @brief setup up the command pools

@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include "gf3d_vector.h"
+#include "vertex.h"
 
 #define GF3D_VGRAPHICS_DISCRETE 0   //Choosing whether to use discrete [1] or integrated graphics [0]
 
@@ -22,6 +23,10 @@ VkExtent2D gf3d_vgraphics_get_view_extent();
 void gf3d_vgraphics_clear();
 
 void gf3d_vgraphics_render();
+
+uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags prop);
+int create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer * buffer, VkDeviceMemory * bufferMemory);
+VkPhysicalDevice gf3d_vgraphics_get_default_physical_device();
 
 
 #endif

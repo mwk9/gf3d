@@ -1,8 +1,5 @@
 #include "mesh.h"
 #include "simple_logger.h"
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 
 //local global variables
 Uint32 meshShaderProgram = 0;
@@ -222,7 +219,7 @@ Group * mesh_get_group_by_name(char *name, Mesh *m)
 	int i = 0;
 	if (name == NULL || m == NULL)
 	{
-		return;
+		return NULL;
 	}
 
 	for (i = 0; i < m->numGroups; i++)
@@ -453,6 +450,7 @@ Mesh * mesh_load_from_file(char *filename)
 	if (!mesh_initialized())
 	{
 		slog("Error: Trying to load a mesh from file, but mesh system not initialized yet");
+		return NULL;
 	}
 	
 	mesh = mesh_get_by_filename(filename);
@@ -468,4 +466,5 @@ Mesh * mesh_load_from_file(char *filename)
 		return NULL;
 	}
 	//load from file
+	return mesh;
 }

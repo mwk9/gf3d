@@ -2,6 +2,7 @@
 #define __ENTITY__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "gf3d_vector.h"
 #include "gf3d_text.h"
 #include "simple_logger.h"

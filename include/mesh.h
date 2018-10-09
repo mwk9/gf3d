@@ -1,9 +1,14 @@
 #ifndef __MESH__
 #define __MESH__
 
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "gf3d_types.h"
 #include "gf3d_vector.h"
 #include "gf3d_text.h"
+
 
 enum meshDrawModes
 {

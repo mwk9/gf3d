@@ -1,6 +1,7 @@
 #ifndef __SHAPE__
 #define __SHAPE__
 
+#include <stdlib.h>
 #include "gf3d_vector.h"
 #include "simple_logger.h"
 

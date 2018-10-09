@@ -75,6 +75,9 @@
     <ClInclude Include="include\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\game.c">
@@ -131,6 +134,9 @@
     <ClCompile Include="src\mesh.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\vertex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basic.frag">
@@ -156,6 +162,12 @@
     </None>
     <None Include="models\susanne.json">
       <Filter>models</Filter>
+    </None>
+    <None Include="shaders\testBuf.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\testBuf.vert">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
