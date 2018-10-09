@@ -1,8 +1,9 @@
 #include "gf3d_pipeline.h"
 #include "gf3d_swapchain.h"
+#include "gf3d_vgraphics.h"
 #include "gf3d_shaders.h"
 #include "vertex.h"
-
+#include "gf3d_model.h"
 #include <string.h>
 #include <stdio.h>
 #include "simple_logger.h"
@@ -32,6 +33,7 @@ void gf3d_pipeline_init(Uint32 max_pipelines)
     }
     gf3d_pipeline.maxPipelines = max_pipelines;
     atexit(gf3d_pipeline_close);
+    slog("pipeline system initialized");
 }
 
 void gf3d_pipeline_close()
@@ -157,6 +159,7 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     
 	/*HEY CHANGE THIS FOR VERTEX BUFFER thanks future matt*/
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+/*<<<<<<< HEAD
     vertexInputInfo.vertexBindingDescriptionCount = 0;
     vertexInputInfo.pVertexBindingDescriptions = NULL; // Optional
     vertexInputInfo.vertexAttributeDescriptionCount = 0;
@@ -165,6 +168,12 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
 	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 	vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)sizeof(attributeDescriptions);
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions;*/
+//=======*/
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)sizeof(attributeDescriptions);
+    vertexInputInfo.pVertexBindingDescriptions = gf3d_mesh_get_bind_description();; // Optional
+    vertexInputInfo.pVertexAttributeDescriptions = gf3d_mesh_get_attribute_descriptions(&vertexInputInfo.vertexAttributeDescriptionCount); // Optional    
+//>>>>>>> in_progress
 
     // TODO: pull all this information from config file
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -193,13 +202,15 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
+//    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+//    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
     rasterizer.depthBiasClamp = 0.0f; // Optional
     rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-    
+
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -228,8 +239,8 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = NULL; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1; // Optional
+    pipelineLayoutInfo.pSetLayouts = gf3d_model_get_descriptor_set_layout(); // Optional
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = NULL; // Optional
 
@@ -259,7 +270,7 @@ Pipeline *gf3d_pipeline_graphics_load(VkDevice device,char *vertFile,char *fragF
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex = -1; // Optional
     
-    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &pipe->graphicsPipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &pipe->pipeline) != VK_SUCCESS)
     {   
         slog("failed to create graphics pipeline!");
         gf3d_pipeline_free(pipe);
@@ -272,11 +283,11 @@ void gf3d_pipeline_free(Pipeline *pipe)
 {
     if (!pipe)return;
     if (!pipe->inUse)return;
-    if (pipe->graphicsPipeline)
+    if (pipe->pipeline != VK_NULL_HANDLE)
     {
-        vkDestroyPipeline(pipe->device, pipe->graphicsPipeline, NULL);
+        vkDestroyPipeline(pipe->device, pipe->pipeline, NULL);
     }
-    if (pipe->pipelineLayout)
+    if (pipe->pipelineLayout != VK_NULL_HANDLE)
     {
         vkDestroyPipelineLayout(pipe->device, pipe->pipelineLayout, NULL);
     }

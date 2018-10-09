@@ -3,8 +3,14 @@
 
 #include "gf3d_vector.h"
 
-typedef double Matrix4[4][4];
+typedef float Matrix4[4][4];
 
+typedef struct
+{
+    Matrix4 model;
+    Matrix4 view;
+    Matrix4 proj;
+}UniformBufferObject;
 
 /**
  * @brief copy the contents of one matrix into another
@@ -66,10 +72,10 @@ void gf3d_matrix_slog(Matrix4 mat);
  */
 void gf3d_matrix_perspective(
     Matrix4     out,
-    double      fov,
-    double      aspect,
-    double      near,
-    double      far
+    float      fov,
+    float      aspect,
+    float      near,
+    float      far
 );
 
 
@@ -96,6 +102,20 @@ void gf3d_matrix_multiply_vector4d(
     Vector4D * out,
     Matrix4    mat,
     Vector4D   vec
+);
+
+/**
+ * @brief multiply a matrix by the rotation matrix
+ * @param out the output matrix
+ * @param in  the input matrix
+ * @param degree the amount, in radians, to rotate by
+ * @param axis the axis about which to rotate
+ */
+void gf3d_matrix_rotate(
+    Matrix4     out,
+    Matrix4     in,
+    float       degree,
+    Vector3D    axis
 );
 
 #endif

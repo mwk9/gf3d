@@ -3,9 +3,12 @@
 #include "simple_logger.h"
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
+#include "gf3d_swapchain.h"
 #include "gf3d_model.h"
 #include "gf3d_matrix.h"
 #include "gf3d_camera.h"
+#include "gf3d_vector.h"
+#include "gf3d_texture.h"
 
 #include "entity.h"
 #include "mesh.h"
@@ -17,8 +20,11 @@ int main(int argc,char *argv[])
 
 	entity_system_init(1024);
 	mesh_system_init(1024);
+
+    Uint32 bufferFrame = 0;
+    Model *model;
     
-    init_logger("gf3d.log");
+    init_logger("gf3d.log");    
     slog("gf3d begin");
     gf3d_vgraphics_init(
         "Blarg",                 //program name
@@ -30,15 +36,24 @@ int main(int argc,char *argv[])
     );
     
     // main game loop
+    slog("gf3d main loop begin");    
+    model = gf3d_model_load("agumon");
     while(!done)
     {
-        gf3d_vgraphics_clear();
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
         
+        gf3d_vgraphics_rotate_camera(0.001);
         
-        gf3d_vgraphics_render();
+        // configure render command for graphics command pool
+        // for each mesh, get a command and configure it from the pool
+        bufferFrame = gf3d_vgraphics_render_begin();
+        
+            gf3d_model_draw(model,bufferFrame);
+            
+        gf3d_vgraphics_render_end(bufferFrame);
+
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
     }    
     

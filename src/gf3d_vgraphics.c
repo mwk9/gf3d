@@ -16,8 +16,11 @@
 #include "gf3d_vqueues.h"
 #include "gf3d_swapchain.h"
 #include "gf3d_vgraphics.h"
+#include "gf3d_model.h"
 #include "gf3d_pipeline.h"
 #include "gf3d_commands.h"
+#include "gf3d_texture.h"
+#include "gf3d_matrix.h"
 
 #include "simple_logger.h"
 
@@ -55,21 +58,34 @@ typedef struct
     
     VkSemaphore                 imageAvailableSemaphore;
     VkSemaphore                 renderFinishedSemaphore;
-    
+        
     Pipeline                   *pipe;
+    
+    VkBuffer                   *uniformBuffers;
+    VkDeviceMemory             *uniformBuffersMemory;
+    Uint32                      uniformBufferCount;
+    Command                 *   graphicsCommandPool; 
+    UniformBufferObject         ubo;
 }vGraphics;
 
 static vGraphics gf3d_vgraphics = {0};
+
+extern Mesh *testMesh;
 
 void gf3d_vgraphics_close();
 void gf3d_vgraphics_logical_device_close();
 void gf3d_vgraphics_extension_init();
 void gf3d_vgraphics_setup_debug();
 void gf3d_vgraphics_semaphores_create();
+
 VkPhysicalDevice gf3d_vgraphics_select_device();
 VkDeviceCreateInfo gf3d_vgraphics_get_device_info(Bool enableValidationLayers);
+
+void gf3d_vgraphics_create_uniform_buffer();
 void gf3d_vgraphics_debug_close();
+void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage);
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator);
+
 void gf3d_vgraphics_setup(
     char *windowName,
     int renderWidth,
@@ -89,6 +105,25 @@ void gf3d_vgraphics_init(
 )
 {
     VkDevice device;
+    
+    gf3d_matrix_identity(gf3d_vgraphics.ubo.model);
+    gf3d_matrix_identity(gf3d_vgraphics.ubo.view);
+    gf3d_matrix_identity(gf3d_vgraphics.ubo.proj);
+    gf3d_matrix_view(
+        gf3d_vgraphics.ubo.view,
+        vector3d(2,20,2),
+        vector3d(0,0,0),
+        vector3d(0,0,1)
+    );
+    gf3d_matrix_perspective(
+        gf3d_vgraphics.ubo.proj,
+        45 * GF3D_DEGTORAD,
+        renderWidth/(float)renderHeight,
+        0.1f,
+        100
+    );
+    
+    gf3d_vgraphics.ubo.proj[1][1] *= -1;
 
     gf3d_vgraphics_setup(
         windowName,
@@ -99,19 +134,33 @@ void gf3d_vgraphics_init(
         enableValidation);
     
     device = gf3d_vgraphics_get_default_logical_device();
+
+    gf3d_vqueues_setup_device_queues(gf3d_vgraphics.device);
+
+    // swap chain!!!
+    gf3d_swapchain_init(gf3d_vgraphics.gpu,gf3d_vgraphics.device,gf3d_vgraphics.surface,renderWidth,renderHeight);
     
-    gf3d_pipeline_init(2);
-	//vertex_system_init();
+    gf3d_mesh_init(1024);//TODO: pull this from a parameter
+    gf3d_texture_init(1024);
+    gf3d_model_manager_init(1024,gf3d_swapchain_get_swap_image_count(),device);
+    
+    gf3d_pipeline_init(4);
+
     gf3d_vgraphics.pipe = gf3d_pipeline_graphics_load(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent());
 
     gf3d_swapchain_setup_frame_buffers(gf3d_vgraphics.pipe);
 
-    gf3d_command_pool_setup(device,gf3d_swapchain_get_frame_buffer_count(),gf3d_vgraphics.pipe);
+    gf3d_vgraphics_create_uniform_buffer();
+    
+    gf3d_command_system_init(8,device);
+
+    gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_frame_buffer_count(),gf3d_vgraphics.pipe);
     
 	//create vertex buffer?
 	//vertex_system_init();
 
     gf3d_vgraphics_semaphores_create();
+    
 }
 
 void gf3d_vgraphics_setup(
@@ -282,16 +331,46 @@ void gf3d_vgraphics_setup(
     }
     gf3d_vgraphics.logicalDeviceCreated = true;
     
-    gf3d_vqueues_setup_device_queues(gf3d_vgraphics.device);
+}
 
-    // swap chain!!!
-    gf3d_swapchain_init(gf3d_vgraphics.gpu,gf3d_vgraphics.device,gf3d_vgraphics.surface,renderWidth,renderHeight);
+VkBuffer gf3d_vgraphics_get_uniform_buffer_by_index(Uint32 index)
+{
+    if (index >= gf3d_vgraphics.uniformBufferCount)
+    {
+        slog("request for uniform buffer index %i is out of range",index);
+        return VK_NULL_HANDLE;
+    }
+    return gf3d_vgraphics.uniformBuffers[index];
+}
+
+void gf3d_vgraphics_create_uniform_buffer()
+{
+    int i;
+    Uint32 buffercount = gf3d_swapchain_get_frame_buffer_count();
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    gf3d_vgraphics.uniformBuffers = (VkBuffer*)gf3d_allocate_array(sizeof(VkBuffer),buffercount);
+    gf3d_vgraphics.uniformBuffersMemory = (VkDeviceMemory*)gf3d_allocate_array(sizeof(VkDeviceMemory),buffercount);
+    gf3d_vgraphics.uniformBufferCount = buffercount;
+
+    for (i = 0; i < buffercount; i++)
+    {
+        gf3d_vgraphics_create_buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &gf3d_vgraphics.uniformBuffers[i], &gf3d_vgraphics.uniformBuffersMemory[i]);
+    }
 }
 
 void gf3d_vgraphics_close()
 {
+    int i;
     slog("cleaning up vulkan graphics");
-    gf3d_vgraphics_debug_close();
+    
+    for (i = 0; i < gf3d_vgraphics.uniformBufferCount; i++)
+    {
+        vkDestroyBuffer(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffers[i], NULL);
+        vkFreeMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[i], NULL);
+    }
+    
+    
     if (gf3d_vgraphics.logicalDeviceCreated)
     {
         vkDestroyDevice(gf3d_vgraphics.device, NULL);
@@ -304,6 +383,9 @@ void gf3d_vgraphics_close()
     {
         free(gf3d_vgraphics.sdl_extension_names);
     }
+
+    gf3d_vgraphics_debug_close();
+        
     if(gf3d_vgraphics.surface && gf3d_vgraphics.vk_instance)
     {
         vkDestroySurfaceKHR(gf3d_vgraphics.vk_instance,gf3d_vgraphics.surface, NULL);
@@ -324,6 +406,11 @@ VkDevice gf3d_vgraphics_get_default_logical_device()
     return gf3d_vgraphics.device;
 }
 
+VkPhysicalDevice gf3d_vgraphics_get_default_physical_device()
+{
+    return gf3d_vgraphics.gpu;
+}
+
 VkExtent2D gf3d_vgraphics_get_view_extent()
 {
     return gf3d_swapchain_get_extent();
@@ -341,6 +428,8 @@ VkDeviceCreateInfo gf3d_vgraphics_get_device_info(Bool enableValidationLayers)
     
     createInfo.pQueueCreateInfos = gf3d_vgraphics.queueCreateInfo;
     createInfo.queueCreateInfoCount = count;
+
+    gf3d_vgraphics.deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     createInfo.pEnabledFeatures = &gf3d_vgraphics.deviceFeatures;
     
@@ -362,19 +451,9 @@ VkDeviceCreateInfo gf3d_vgraphics_get_device_info(Bool enableValidationLayers)
     return createInfo;
 }
 
-void gf3d_vgraphics_clear()
-{
-    
-}
-
-void gf3d_vgraphics_render()
+Uint32 gf3d_vgraphics_render_begin()
 {
     Uint32 imageIndex;
-    VkPresentInfoKHR presentInfo = {0};
-    VkSubmitInfo submitInfo = {0};
-    VkSemaphore waitSemaphores[] = {gf3d_vgraphics.imageAvailableSemaphore};
-    VkSemaphore signalSemaphores[] = {gf3d_vgraphics.renderFinishedSemaphore};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     VkSwapchainKHR swapChains[1] = {0};
 
     /*
@@ -392,13 +471,31 @@ void gf3d_vgraphics_render()
         VK_NULL_HANDLE,
         &imageIndex);
     
+    return imageIndex;
+}
+
+void gf3d_vgraphics_render_end(Uint32 imageIndex)
+{
+    VkPresentInfoKHR presentInfo = {0};
+    VkSubmitInfo submitInfo = {0};
+    VkSwapchainKHR swapChains[1] = {0};
+    VkSemaphore waitSemaphores[] = {gf3d_vgraphics.imageAvailableSemaphore};
+    VkSemaphore signalSemaphores[] = {gf3d_vgraphics.renderFinishedSemaphore};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    swapChains[0] = gf3d_swapchain_get();
+
+    gf3d_vgraphics_update_uniform_buffer(imageIndex);
+
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = gf3d_command_buffer_get_by_index(imageIndex);
+    //get count of configured command buffers
+    //get the list of command buffers
+    
+    submitInfo.commandBufferCount = gf3d_command_pool_get_used_buffer_count(gf3d_vgraphics.graphicsCommandPool);
+    submitInfo.pCommandBuffers = gf3d_command_pool_get_used_buffers(gf3d_vgraphics.graphicsCommandPool);
     
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
@@ -429,6 +526,7 @@ Bool gf3d_vgraphics_device_validate(VkPhysicalDevice device)
 {
     VkPhysicalDeviceProperties deviceProperties;
     VkPhysicalDeviceFeatures deviceFeatures;
+    
     
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
     vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -544,6 +642,7 @@ void gf3d_vgraphics_semaphores_create()
     atexit(gf3d_vgraphics_semaphores_close);
 }
 
+/*<<<<<<< HEAD
 void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice size)
 {
 	VkCommandBufferAllocateInfo allocInfo = { 0 };
@@ -607,6 +706,126 @@ int create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyF
 
 	vkBindBufferMemory(gf3d_vgraphics.device, *buffer, *bufferMemory, 0);
 	return 1;
+=======*/
+
+void gf3d_vgraphics_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    VkBufferCopy copyRegion = {0};
+
+    VkCommandBuffer commandBuffer = gf3d_command_begin_single_time(gf3d_vgraphics.graphicsCommandPool);
+    
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    gf3d_command_end_single_time(gf3d_vgraphics.graphicsCommandPool, commandBuffer);
+    
+}
+
+int gf3d_vgraphics_create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer * buffer, VkDeviceMemory * bufferMemory)
+{
+    VkBufferCreateInfo bufferInfo = {0};
+    VkMemoryRequirements memRequirements;
+    VkMemoryAllocateInfo allocInfo = {0};
+
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(gf3d_vgraphics.device, &bufferInfo, NULL, buffer) != VK_SUCCESS)
+    {
+        slog("failed to create buffer!");
+        return 0;
+    }
+
+    vkGetBufferMemoryRequirements(gf3d_vgraphics.device, *buffer, &memRequirements);
+
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = gf3d_vgraphics_find_memory_type(memRequirements.memoryTypeBits, properties);
+
+    
+    if (vkAllocateMemory(gf3d_vgraphics.device, &allocInfo, NULL, bufferMemory) != VK_SUCCESS)
+    {
+        slog("failed to allocate buffer memory!");
+        return 0;
+    }
+
+    vkBindBufferMemory(gf3d_vgraphics.device, *buffer, *bufferMemory, 0);
+    return 1;
+}
+
+uint32_t gf3d_vgraphics_find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    
+    vkGetPhysicalDeviceMemoryProperties(gf3d_vgraphics_get_default_physical_device(), &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && ((memProperties.memoryTypes[i].propertyFlags & properties) == properties))
+        {
+            return i;
+        }
+    }
+
+    slog("failed to find suitable memory type!");
+    return 0;
+}
+
+void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage)
+{
+    void* data;
+    vkMapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
+    
+        memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
+
+    vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);
+}
+
+void gf3d_vgraphics_rotate_camera(float degrees)
+{
+    gf3d_matrix_rotate(
+        gf3d_vgraphics.ubo.model,
+        gf3d_vgraphics.ubo.model,
+        degrees,
+        vector3d(0,0,1));
+
+}
+
+Pipeline *gf3d_vgraphics_get_graphics_pipeline()
+{
+    return gf3d_vgraphics.pipe;
+}
+
+Command *gf3d_vgraphics_get_graphics_command_pool()
+{
+    return gf3d_vgraphics.graphicsCommandPool;
+}
+
+VkImageView gf3d_vgraphics_create_image_view(VkImage image, VkFormat format)
+{
+    VkImageView imageView;
+    VkImageViewCreateInfo viewInfo = {0};
+
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (vkCreateImageView(gf3d_vgraphics.device, &viewInfo, NULL, &imageView) != VK_SUCCESS)
+    {
+        slog("failed to create texture image view!");
+        return VK_NULL_HANDLE;
+    }
+
+    return imageView;
+//>>>>>>> in_progress
 }
 
 /*eol@eof*/
