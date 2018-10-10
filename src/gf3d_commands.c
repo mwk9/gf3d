@@ -174,6 +174,10 @@ VkCommandBuffer gf3d_command_get_graphics_buffer(Command *com)
 
 void gf3d_command_configure_render_pass_end(VkCommandBuffer commandBuffer)
 {
+	if (!commandBuffer)
+	{
+		return;
+	}
     vkCmdEndRenderPass(commandBuffer);
 }
 

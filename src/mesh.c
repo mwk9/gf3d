@@ -7,7 +7,7 @@ Uint8 meshSystemInitialized = 0;
 typedef struct meshManager_s
 {
 	Uint32 maxMeshes;
-	Mesh *meshList;
+	MyMesh *meshList;
 	Uint64 increment;
 }MeshManager;
 
@@ -35,14 +35,14 @@ void mesh_system_init(Uint32 maxMeshes)
 	}
 
 	memset(&meshManager, 0, sizeof(MeshManager));
-	meshManager.meshList = (Mesh *)malloc(sizeof(Mesh) * maxMeshes);
+	meshManager.meshList = (MyMesh *)malloc(sizeof(MyMesh) * maxMeshes);
 	if (!meshManager.meshList)
 	{
 		slog("Error: Could not allocate memory of the mesh list");
 		mesh_system_close();
 		return;
 	}
-	memset(meshManager.meshList, 0, sizeof(Mesh) * maxMeshes);
+	memset(meshManager.meshList, 0, sizeof(MyMesh) * maxMeshes);
 	meshManager.maxMeshes = maxMeshes;
 	meshSystemInitialized = 1;
 
@@ -55,7 +55,7 @@ Uint8 mesh_initialized()
 	return meshSystemInitialized;
 }
 
-Mesh * mesh_new()
+MyMesh * mesh_new()
 {
 	int i = 0;
 
@@ -64,7 +64,7 @@ Mesh * mesh_new()
 		if (meshManager.meshList[i].refCount == 0)
 		{
 			slog("Found a spot for a new mesh at index (%i)", i);
-			memset(&meshManager.meshList[i], 0, sizeof(Mesh));
+			memset(&meshManager.meshList[i], 0, sizeof(MyMesh));
 			meshManager.meshList[i].id = meshManager.increment++;
 			meshManager.meshList[i].refCount = 1;
 			return &meshManager.meshList[i];
@@ -78,7 +78,7 @@ Mesh * mesh_new()
 /**
  * @brief Gets the number of vertices, normals, texture coordinates, and faces from a file and applies it to a given mesh
  */
-void mesh_object_get_counts(FILE *file, Mesh *m)
+void mesh_object_get_counts(FILE *file, MyMesh *m)
 {
 	char buffer[128];
 	int numVertices = 0;
@@ -131,7 +131,7 @@ void mesh_object_get_counts(FILE *file, Mesh *m)
 	m->numFaces = numFaces;
 }
 
-void mesh_get_mesh_from_object_file(FILE *file, Mesh *m)
+void mesh_get_mesh_from_object_file(FILE *file, MyMesh *m)
 {
 	int numVertices = 0;
 	int numNormals = 0;
@@ -214,7 +214,7 @@ void mesh_get_mesh_from_object_file(FILE *file, Mesh *m)
 	vector3d_copy(m->bounds, bounds);
 }
 
-Group * mesh_get_group_by_name(char *name, Mesh *m)
+MyGroup * mesh_get_group_by_name(char *name, MyMesh *m)
 {
 	int i = 0;
 	if (name == NULL || m == NULL)
@@ -234,7 +234,7 @@ Group * mesh_get_group_by_name(char *name, Mesh *m)
 	return NULL;
 }
 
-void mesh_get_groups(FILE *file, Mesh *m)
+void mesh_get_groups(FILE *file, MyMesh *m)
 {
 	Uint8 badLoad = 0;
 	TextLine buffer;
@@ -243,7 +243,7 @@ void mesh_get_groups(FILE *file, Mesh *m)
 	Uint32 i = 0;
 	Uint32 g = 0;
 	float weight = 0.0f;
-	Group *group = NULL;
+	MyGroup *group = NULL;
 
 	if (file == NULL || m == NULL)
 	{
@@ -266,7 +266,7 @@ void mesh_get_groups(FILE *file, Mesh *m)
 		return;
 	}
 	m->numGroups = numGroups;
-	m->groups = (Group *)malloc(sizeof(Group) * numGroups);
+	m->groups = (MyGroup *)malloc(sizeof(MyGroup) * numGroups);
 	if (m->groups == NULL)
 	{
 		slog("Error: Could not allocate memory for mesh groups");
@@ -275,7 +275,7 @@ void mesh_get_groups(FILE *file, Mesh *m)
 		m->numGroups = 0;
 		return;
 	}
-	memset(m->groups, 0, sizeof(Group) * numGroups);
+	memset(m->groups, 0, sizeof(MyGroup) * numGroups);
 
 	//name all of the groups
 	rewind(file);
@@ -364,7 +364,7 @@ void mesh_get_groups(FILE *file, Mesh *m)
 /**
  * @brief Loads mesh data from object file and stores the information into the provided Mesh
  */
-void mesh_load_from_object_file(char *filename, Mesh *m)
+void mesh_load_from_object_file(char *filename, MyMesh *m)
 {
 	FILE *file;
 	file = fopen(filename, "r");
@@ -393,13 +393,13 @@ void mesh_load_from_object_file(char *filename, Mesh *m)
 	}
 	if (m->numTexels != 0)
 	{
-		m->texels = (Vertex *)malloc(sizeof(Vertex) * (m->numTexels));
-		memset(m->texels, 0, sizeof(Vertex) * (m->numTexels));
+		m->texels = (MyVertex *)malloc(sizeof(MyVertex) * (m->numTexels));
+		memset(m->texels, 0, sizeof(MyVertex) * (m->numTexels));
 	}
 	if (m->numFaces != 0)
 	{
-		m->faces = (Face *)malloc(sizeof(Face) * (m->numFaces));
-		memset(m->faces, 0, sizeof(Face) * (m->numFaces));
+		m->faces = (MyFace *)malloc(sizeof(MyFace) * (m->numFaces));
+		memset(m->faces, 0, sizeof(MyFace) * (m->numFaces));
 	}
 	mesh_get_mesh_from_object_file(file, m);
 	memcpy(m->rest, m->vertices, sizeof(Vector3D) * (m->numVertices));
@@ -413,7 +413,7 @@ void mesh_load_from_object_file(char *filename, Mesh *m)
  * @param filename The filename of the Mesh to search for
  * @returns A reference to the Mesh if it already exists in the Mesh list; NULL if it does not
  */
-Mesh * mesh_get_by_filename(char *filename)
+MyMesh * mesh_get_by_filename(char *filename)
 {
 	int i = 0;
 
@@ -443,9 +443,9 @@ Mesh * mesh_get_by_filename(char *filename)
 	return NULL;
 }
 
-Mesh * mesh_load_from_file(char *filename)
+MyMesh * mesh_load_from_file(char *filename)
 {
-	Mesh *mesh = NULL;
+	MyMesh *mesh = NULL;
 
 	if (!mesh_initialized())
 	{

@@ -23,14 +23,14 @@ enum meshDrawModes
 /**
  * @brief A vertex in 2D space, uses in texture space
  */
-typedef float Vertex[2];
+typedef float MyVertex[2];
 
 typedef struct face_s
 {
 	Sint32 vertices[3];
 	Sint32 normals[3];
 	Sint32 texels[3];
-}Face;
+}MyFace;
 
 typedef struct group_s
 {
@@ -40,7 +40,7 @@ typedef struct group_s
 	float *weights;
 	Sint32 _assignedV;
 	Sint32 _assignedW;
-}Group;
+}MyGroup;
 
 typedef struct mesh_s
 {
@@ -59,9 +59,9 @@ typedef struct mesh_s
 
 	Vector3D *rest; /**<Pointer to allocated vertex array at rest position*/
 	Vector3D *normals; /**<Pointer to allocated normal array*/
-	Vertex *texels; /**<Pointer to allocated texture vertex array*/
-	Face *faces; /**<Pointer to allocated triangle array*/
-	Group *groups; /**<Pointer to allocated bone array*/
+	MyVertex *texels; /**<Pointer to allocated texture vertex array*/
+	MyFace *faces; /**<Pointer to allocated triangle array*/
+	MyGroup *groups; /**<Pointer to allocated bone array*/
 	Vector3D *vertices; /**<Pointer to allocated vertex array*/
 	Sint32 currFrame; /**<Frame that is currently in the vertices list*/
 
@@ -69,7 +69,7 @@ typedef struct mesh_s
 	Uint32 vertexArrayIndex;
 	Uint32 normalArrayIndex;
 	Uint32 texelArrayIndex;
-}Mesh;
+}MyMesh;
 
 /**
  * @brief Closes the Mesh System
@@ -92,13 +92,13 @@ Uint8 mesh_initialized();
  * @brief Finds a spot in the Mesh manager that is not in use for a new Mesh
  * @returns Memory address where a new Mesh can be stored; NULL if no more space available
  */
-Mesh * mesh_new();
+MyMesh * mesh_new();
 
 /**
  * @brief Attempts to load a Mesh from a .obj file
  * @param filename The name of the .obj file to load
  * @returns A Mesh pointer to the new Mesh; NULL if failed
  */
-Mesh * mesh_load_from_file(char *filename);
+MyMesh * mesh_load_from_file(char *filename);
 
 #endif

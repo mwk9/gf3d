@@ -19,7 +19,7 @@ int main(int argc,char *argv[])
     const Uint8 * keys;
 
 	entity_system_init(1024);
-	mesh_system_init(1024);
+	//mesh_system_init(1024);
 
     Uint32 bufferFrame = 0;
     Model *model;

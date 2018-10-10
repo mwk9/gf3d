@@ -113,10 +113,10 @@ Model * gf3d_model_load(char * filename)
     if (model)return model;
     model = gf3d_model_new();
     if (!model)return NULL;
-    snprintf(assetname,GF3DLINELEN,"models/%s.obj",filename);
+    _snprintf(assetname,GF3DLINELEN,"models/%s.obj",filename);
     model->mesh = gf3d_mesh_load(assetname);
 
-    snprintf(assetname,GF3DLINELEN,"images/%s.png",filename);
+    _snprintf(assetname,GF3DLINELEN,"images/%s.png",filename);
     model->texture = gf3d_texture_load(assetname);
     
     gf3d_model_setup(model);

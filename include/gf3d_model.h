@@ -22,12 +22,16 @@
     SOFTWARE.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL_image.h>
 #include "gf3d_types.h"
 #include "gf3d_vector.h"
 #include "gf3d_matrix.h"
 #include "gf3d_text.h"
 #include "gf3d_texture.h"
 #include "gf3d_mesh.h"
+
 
 typedef struct
 {
