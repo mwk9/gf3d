@@ -32,7 +32,7 @@ int main(int argc,char *argv[])
     
     // main game loop
     slog("gf3d main loop begin");
-    model = gf3d_model_load("bird_maya");
+    model = gf3d_model_load("bird_maya2");
     //model2 = gf3d_model_load("cube");
     while(!done)
     {
@@ -40,7 +40,7 @@ int main(int argc,char *argv[])
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
         
-        gf3d_vgraphics_rotate_camera(0.001);
+        gf3d_vgraphics_rotate_camera(0.05);
         
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool

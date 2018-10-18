@@ -150,6 +150,8 @@ void gf3d_vgraphics_init(
 
     gf3d_vgraphics_create_uniform_buffer();
     
+
+	//dj inits 8 as max commands
     gf3d_command_system_init(8,device);
 
     gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_swap_image_count(),gf3d_vgraphics.pipe);
