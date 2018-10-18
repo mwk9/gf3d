@@ -17,7 +17,7 @@ int main(int argc,char *argv[])
     Uint32 bufferFrame = 0;
     VkCommandBuffer commandBuffer;
     Model *model;
-    Model *model2;
+    //Model *model2;
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
@@ -32,8 +32,8 @@ int main(int argc,char *argv[])
     
     // main game loop
     slog("gf3d main loop begin");
-    model = gf3d_model_load("agumon");
-    model2 = gf3d_model_load("cube");
+    model = gf3d_model_load("bird_maya");
+    //model2 = gf3d_model_load("cube");
     while(!done)
     {
         SDL_PumpEvents();   // update SDL's internal event structures
@@ -48,7 +48,7 @@ int main(int argc,char *argv[])
         commandBuffer = gf3d_command_rendering_begin(bufferFrame);
 
             gf3d_model_draw(model,bufferFrame,commandBuffer);
-            gf3d_model_draw(model2,bufferFrame,commandBuffer);
+            //gf3d_model_draw(model2,bufferFrame,commandBuffer);
             
         gf3d_command_rendering_end(commandBuffer);
         gf3d_vgraphics_render_end(bufferFrame);
