@@ -150,6 +150,8 @@ void gf3d_model_draw(Model *model,Uint32 bufferFrame, VkCommandBuffer commandBuf
         slog("cannot render a NULL model");
         return;
     }
+	//set ubo in entity ubo[3][0-2]
+	//gf3d_vgraphics_update_ubo
     gf3d_mesh_render(model->mesh,commandBuffer,&model->descriptorSets[bufferFrame]);
 }
 
