@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gf3d_vector.h"
 #include "gf3d_text.h"
 #include "gf3d_matrix.h"
@@ -21,6 +22,8 @@ typedef struct entity_s
 	Vector3D acceleration;
 
 	//Mesh data
+	Uint32 bufferFrame;
+	VkCommandBuffer commandBuffer;
 	UniformBufferObject ubo;
 	Model *model;
 
@@ -83,6 +86,8 @@ void entity_update_all();
  */
 void entity_set_draw_position(Entity *self, Vector3D position);
 
-void entity_draw(Entity *self);
+void entity_configure_render_pool(Entity *self);
+void entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
 #endif // !__ENTITY__

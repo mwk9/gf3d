@@ -95,6 +95,11 @@ void gf3d_vgraphics_setup(
     Bool enableValidation
 );
 
+VkDeviceMemory *get_uniform_buffers_memory()
+{
+	return gf3d_vgraphics.uniformBuffersMemory;
+}
+
 void gf3d_vgraphics_init(
     char *windowName,
     int renderWidth,
@@ -466,7 +471,7 @@ Uint32 gf3d_vgraphics_render_begin()
     return imageIndex;
 }
 
-void gf3d_vgraphics_render_end(Uint32 imageIndex)
+void gf3d_vgraphics_render_end(Uint32 imageIndex, Uint8 * keys, float direction)
 {
     VkPresentInfoKHR presentInfo = {0};
     VkSubmitInfo submitInfo = {0};
@@ -477,7 +482,8 @@ void gf3d_vgraphics_render_end(Uint32 imageIndex)
 	VkResult result;
     swapChains[0] = gf3d_swapchain_get();
 
-    gf3d_vgraphics_update_uniform_buffer(imageIndex);
+    //gf3d_vgraphics_update_uniform_buffer(imageIndex);
+	move_model_test(imageIndex, direction);
 
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -705,11 +711,33 @@ uint32_t gf3d_vgraphics_find_memory_type(uint32_t typeFilter, VkMemoryPropertyFl
 void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage)
 {
     void* data;
+	//gf3d_vgraphics.ubo.model[3][0] = 10.0; //Move object
     vkMapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
     
         memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
 
     vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);
+}
+
+void move_model_test(uint32_t currentImage, float direction)
+{
+	void *data;
+	if (direction > 0.0f)
+	{
+		gf3d_vgraphics.ubo.model[3][0] += 0.1;
+	}
+	else if (direction < 0.0f)
+	{
+		gf3d_vgraphics.ubo.model[3][0] -= 0.1;
+	}
+	else
+	{
+		//gf3d_vgraphics.ubo.model[3][0] -= 0.1;
+	}
+	//gf3d_vgraphics.ubo.view[0][0] = 0;
+	vkMapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
+	memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
+	vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);
 }
 
 void gf3d_vgraphics_rotate_camera(float degrees)

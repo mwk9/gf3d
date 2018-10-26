@@ -19,6 +19,11 @@ void gf3d_texture_close();
 void gf3d_texture_delete(Texture *tex);
 void gf3d_texture_delete_all();
 
+VkDevice get_device()
+{
+	return gf3d_texture.device;
+}
+
 void gf3d_texture_init(Uint32 max_textures)
 {
     slog("initializing texture system");
@@ -201,7 +206,7 @@ void gf3d_texture_create_sampler(Texture *tex)
 Texture *gf3d_texture_load(char *filename)
 {
     SDL_Surface * surface;
-    void* data;
+    void* data = NULL;
     Texture *tex;
     VkDeviceSize imageSize;
     VkBuffer stagingBuffer;

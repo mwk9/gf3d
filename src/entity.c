@@ -80,6 +80,7 @@ Entity *entity_load(char *modelFilename)
 	}
 
 	e->model = gf3d_model_load(modelFilename);
+	//entity_configure_render_pool(e);
 
 	return e;
 }
@@ -145,16 +146,90 @@ void entity_update_all()
 
 void entity_set_draw_position(Entity *self, Vector3D position)
 {
+	int i = 0;
+	void *data;
+
 	if (!self)
 	{
 		slog("Warning: Trying to draw a null entity");
 		return;
 	}
 
-	//self->ubo.model[3][0]
+	self->ubo.model[3][0] = 30.0;
+	self->ubo.model[3][1] = 30.0;
+	self->ubo.model[3][2] = 30.0;
+	
+	vkMapMemory(get_device(), get_uniform_buffers_memory()[i], 0, sizeof(self->ubo), 0, &data);
+	memcpy(data, &(self->ubo), sizeof(self->ubo));
+	vkUnmapMemory(get_device(), get_uniform_buffers_memory()[i]);
 }
 
-void entity_draw(Entity *self)
+void entity_configure_render_pool(Entity *self)
 {
+	if (!self)
+	{
+		slog("Error: cannot configure renders for a null entity");
+		return;
+	}
 
+	//self->bufferFrame = gf3d_vgraphics_render_begin();
+	//self->commandBuffer = gf3d_command_rendering_begin(self->bufferFrame);
+}
+
+void entity_render_end(Entity *self, Uint8 *keys, float direction)
+{
+	if (!self)
+	{
+		return;
+	}
+
+	gf3d_command_rendering_end(self->commandBuffer);
+	gf3d_vgraphics_render_end(self->bufferFrame, keys, direction);
+}
+
+void entity_render_end_all(Uint8 *keys, float direction)
+{
+	int i = 0;
+
+	for (i = 0; i < entityManager.maxEntities; i++)
+	{
+		if (entityManager.entityList[i].inUse)
+		{
+			if (entityManager.entityList[i].model)
+			{
+				entity_render_end(&entityManager.entityList[i], keys, direction);
+			}
+		}
+	}
+}
+
+void entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer)
+{
+	if (!self)
+	{
+		return;
+	}
+	
+	//entity_configure_render_pool(self);
+	gf3d_model_draw(self->model, bufferFrame, commandBuffer);
+	//gf3d_command_rendering_end(self->commandBuffer);
+	//gf3d_vgraphics_render_end(self->bufferFrame);
+}
+
+void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
+{
+	int i = 0;
+
+	for (i = 0; i < entityManager.maxEntities; i++)
+	{
+		if (entityManager.entityList[i].inUse)
+		{
+			if (entityManager.entityList[i].model)
+			{
+				entity_draw(&entityManager.entityList[i], bufferFrame, commandBuffer);
+			}
+		}
+	}
+
+	//entity_render_end_all();
 }
