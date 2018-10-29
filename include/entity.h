@@ -3,20 +3,32 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gf3d_vector.h"
 #include "gf3d_text.h"
+#include "gf3d_matrix.h"
+#include "gf3d_model.h"
 #include "simple_logger.h"
+
+#define MAX_ENTITY_NUM 10
 
 typedef struct entity_s
 {
 	short unsigned int inUse;
-	Uint64 id;
+	Uint32 id;
 	TextLine name;
 
 	//physics
 	Vector3D position;
+	Vector3D rotation;
 	Vector3D velocity;
 	Vector3D acceleration;
+
+	//Mesh data
+	Uint32 bufferFrame;
+	VkCommandBuffer commandBuffer;
+	UniformBufferObject ubo;
+	Model *model;
 
 	//function pointers for logic
 	void(*draw)(struct entity_s *self);
@@ -44,6 +56,16 @@ void entity_system_init(Uint32 maxEntities);
 Entity *entity_new();
 
 /**
+<<<<<<< HEAD
+=======
+ * @brief Creates a new entity with specified attributes
+ * @param modelFilename The filename of the model to assign to the entity
+ * @returns A pointer to the new entity
+ */
+Entity *entity_load(char *modelFilename);
+
+/**
+>>>>>>> working_3d_models
  * @brief Recycles an entity slot back to the Entity Manager
  * @param e The entity to free
  */
@@ -64,5 +86,14 @@ void entity_update(Entity *self);
  * @brief Runs entity_update on every existing entity
  */
 void entity_update_all();
+
+/**
+ * TODO: comment this function
+ */
+void entity_set_draw_position(Entity *self, Vector3D position);
+
+void entity_configure_render_pool(Entity *self);
+void entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 
 #endif // !__ENTITY__

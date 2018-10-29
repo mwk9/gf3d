@@ -54,6 +54,6 @@ makefile.dep
 gf3d
 *.log
 
+*.bat
 Debug/
 Release/
-*.bat

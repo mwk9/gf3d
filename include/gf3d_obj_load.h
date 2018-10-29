@@ -1,6 +1,7 @@
 #ifndef __GF3D_OBJ_LOAD_H__
 #define __GF3D_OBJ_LOAD_H__
 
+#include <stdio.h>
 #include "gf3d_mesh.h"
 #include <stdio.h>
 

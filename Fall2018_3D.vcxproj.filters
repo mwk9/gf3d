@@ -87,6 +87,9 @@
     <ClInclude Include="include\gf3d_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\uniforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\game.c">
@@ -153,6 +156,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gf3d_texture.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uniforms.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

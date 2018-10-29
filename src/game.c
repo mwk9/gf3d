@@ -9,6 +9,8 @@
 #include "gf3d_camera.h"
 #include "gf3d_vector.h"
 #include "gf3d_texture.h"
+#include "entity.h"
+#include "uniforms.h"
 
 #include "entity.h"
 #include "mesh.h"
@@ -22,37 +24,71 @@ int main(int argc,char *argv[])
 	//mesh_system_init(1024);
 
     Uint32 bufferFrame = 0;
-    Model *model;
+    VkCommandBuffer commandBuffer;
+    //Model *model;
+    //Model *model2;
+	Entity *test_ent;
+	Entity *test_ent2;
+	float direction = 0.0f;
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
+	entity_system_init(MAX_ENTITY_NUM);
     gf3d_vgraphics_init(
         "Blarg",                 //program name
         1200,                   //screen width
         700,                    //screen height
         vector4d(0.51,0.75,1,1),//background color
         0,                      //fullscreen
-        1                       //validation
+        1                      //validation
     );
     
     // main game loop
-    slog("gf3d main loop begin");    
-    model = gf3d_model_load("agumon");
+    slog("gf3d main loop begin");
+    //model = gf3d_model_load("bird_maya");
+    //model2 = gf3d_model_load("cube");
+	test_ent = entity_load("bird_maya2");
+	test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
+	//test_ent2 = entity_load("cube");
     while(!done)
     {
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
         
-        gf3d_vgraphics_rotate_camera(0.001);
+        gf3d_vgraphics_rotate_camera(0.03);
         
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
         bufferFrame = gf3d_vgraphics_render_begin();
-        
-            gf3d_model_draw(model,bufferFrame);
+        commandBuffer = gf3d_command_rendering_begin(bufferFrame);
+
+            //gf3d_model_draw(model,bufferFrame,commandBuffer);
+            //gf3d_model_draw(model2,bufferFrame,commandBuffer);
+		entity_update_all();
+		entity_draw_all(bufferFrame, commandBuffer);
             
-        gf3d_vgraphics_render_end(bufferFrame);
+        
+		if (keys[SDL_SCANCODE_D])
+		{
+			direction = -1.0f;
+		}
+		else if (keys[SDL_SCANCODE_A])
+		{
+			direction = 1.0f;
+		}
+		else
+		{
+			direction = 0.0f;
+		}
+		gf3d_command_rendering_end(commandBuffer);
+		gf3d_vgraphics_render_end(bufferFrame, keys, direction);
+
+		if (keys[SDL_SCANCODE_B])
+		{
+			test_ent = entity_load("agumon");
+			//entity_set_draw_position(test_ent, vector3d(0.0f,0.0f,0.0f));
+		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
     }    
