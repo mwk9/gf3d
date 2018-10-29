@@ -10,14 +10,17 @@
 #include "gf3d_model.h"
 #include "simple_logger.h"
 
+#define MAX_ENTITY_NUM 10
+
 typedef struct entity_s
 {
 	short unsigned int inUse;
-	Uint64 id;
+	Uint32 id;
 	TextLine name;
 
 	//physics
 	Vector3D position;
+	Vector3D rotation;
 	Vector3D velocity;
 	Vector3D acceleration;
 

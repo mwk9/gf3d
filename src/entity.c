@@ -61,6 +61,7 @@ Entity *entity_new()
 			memset(&entityManager.entityList[i], 0, sizeof(Entity));
 			entityManager.entityList[i].id = entityManager.increment++;
 			entityManager.entityList[i].inUse = 1;
+			//entityManager.entityList[i].model = (Model *)malloc(sizeof(Model));
 			return &entityManager.entityList[i];
 		}
 	}
@@ -128,6 +129,11 @@ void entity_update(Entity *self)
 		self->update(self);
 	}
 
+	gf3d_matrix_identity(self->ubo.model);
+	gf3d_matrix_make_translation(self->ubo.model, self->position);
+
+	gf3d_matrix_rotate(self->ubo.model, self->ubo.model, 0.05f, self->rotation);
+
 	//gravity and physics stuff goes here
 }
 
@@ -135,7 +141,7 @@ void entity_update_all()
 {
 	int i = 0;
 
-	for (i = 0; entityManager.maxEntities; i++)
+	for (i = 0; i < entityManager.maxEntities; i++)
 	{
 		if (entityManager.entityList[i].inUse == 1)
 		{

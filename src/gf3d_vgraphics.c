@@ -65,7 +65,8 @@ typedef struct
     VkDeviceMemory             *uniformBuffersMemory;
     Uint32                      uniformBufferCount;
     Command                 *   graphicsCommandPool; 
-    UniformBufferObject         ubo;
+    UniformBufferObject         ubo; //only big enough for one ubo
+	//Uint32						maxUBOs; //lets change that
 }vGraphics;
 
 static vGraphics gf3d_vgraphics = {0};
@@ -110,6 +111,9 @@ void gf3d_vgraphics_init(
 )
 {
     VkDevice device;
+
+	//gf3d_vgraphics.ubo = (UniformBufferObject *)malloc(sizeof(UniformBufferObject) * maxUBOs);
+	//memset(gf3d_vgraphics.ubo, 0, sizeof(UniformBufferObject) * maxUBOs);
     
     gf3d_matrix_identity(gf3d_vgraphics.ubo.model);
     gf3d_matrix_identity(gf3d_vgraphics.ubo.view);
@@ -734,7 +738,7 @@ void move_model_test(uint32_t currentImage, float direction)
 	{
 		//gf3d_vgraphics.ubo.model[3][0] -= 0.1;
 	}
-	//gf3d_vgraphics.ubo.view[0][0] = 0;
+	gf3d_vgraphics.ubo.model[3][2] = -5.0f;
 	vkMapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
 	memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
 	vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);

@@ -106,6 +106,7 @@
     <ClInclude Include="include\gf3d_vqueues.h" />
     <ClInclude Include="include\shape.h" />
     <ClInclude Include="include\simple_logger.h" />
+    <ClInclude Include="include\uniforms.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\entity.c" />
@@ -128,6 +129,7 @@
     <ClCompile Include="src\gf3d_vqueues.c" />
     <ClCompile Include="src\shape.c" />
     <ClCompile Include="src\simple_logger.c" />
+    <ClCompile Include="src\uniforms.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="models\cube.json" />
