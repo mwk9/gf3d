@@ -21,6 +21,7 @@
 #include "gf3d_commands.h"
 #include "gf3d_texture.h"
 #include "gf3d_matrix.h"
+#include "uniforms.h"
 
 #include "simple_logger.h"
 
@@ -61,12 +62,13 @@ typedef struct
         
     Pipeline                   *pipe;
     
-    VkBuffer                   *uniformBuffers;
-    VkDeviceMemory             *uniformBuffersMemory;
-    Uint32                      uniformBufferCount;
+    //VkBuffer                   *uniformBuffers;
+    //VkDeviceMemory             *uniformBuffersMemory;
+    //Uint32                      uniformBufferCount;
     Command                 *   graphicsCommandPool; 
-    UniformBufferObject         ubo; //only big enough for one ubo
+    //UniformBufferObject         ubo; //only big enough for one ubo
 	//Uint32						maxUBOs; //lets change that
+	UBOManager					*uboManager;
 }vGraphics;
 
 static vGraphics gf3d_vgraphics = {0};
@@ -96,10 +98,10 @@ void gf3d_vgraphics_setup(
     Bool enableValidation
 );
 
-VkDeviceMemory *get_uniform_buffers_memory()
+/*VkDeviceMemory *get_uniform_buffers_memory()
 {
 	return gf3d_vgraphics.uniformBuffersMemory;
-}
+}*/
 
 void gf3d_vgraphics_init(
     char *windowName,
@@ -114,7 +116,7 @@ void gf3d_vgraphics_init(
 
 	//gf3d_vgraphics.ubo = (UniformBufferObject *)malloc(sizeof(UniformBufferObject) * maxUBOs);
 	//memset(gf3d_vgraphics.ubo, 0, sizeof(UniformBufferObject) * maxUBOs);
-    
+	/*
     gf3d_matrix_identity(gf3d_vgraphics.ubo.model);
     gf3d_matrix_identity(gf3d_vgraphics.ubo.view);
     gf3d_matrix_identity(gf3d_vgraphics.ubo.proj);
@@ -133,7 +135,7 @@ void gf3d_vgraphics_init(
     );
     
     gf3d_vgraphics.ubo.proj[1][1] *= -1;
-
+	*/
     gf3d_vgraphics_setup(
         windowName,
         renderWidth,
@@ -157,7 +159,7 @@ void gf3d_vgraphics_init(
 
     gf3d_vgraphics.pipe = gf3d_pipeline_graphics_load(device,"shaders/vert.spv","shaders/frag.spv",gf3d_vgraphics_get_view_extent());
 
-    gf3d_vgraphics_create_uniform_buffer();
+    //gf3d_vgraphics_create_uniform_buffer();
     
 
 	//dj inits 8 as max commands
@@ -169,6 +171,14 @@ void gf3d_vgraphics_init(
     gf3d_swapchain_setup_frame_buffers(gf3d_vgraphics.pipe);    
     
     gf3d_vgraphics_semaphores_create();
+
+	gf3d_vgraphics.uboManager = ubo_manager_init
+	(
+		MAX_ENTITY_NUM,
+		gf3d_swapchain_get_swap_image_count(),
+		renderWidth,
+		renderHeight
+	);
     
 }
 
@@ -334,7 +344,7 @@ void gf3d_vgraphics_setup(
     
 }
 
-VkBuffer gf3d_vgraphics_get_uniform_buffer_by_index(Uint32 index)
+/*VkBuffer gf3d_vgraphics_get_uniform_buffer_by_index(Uint32 index)
 {
     if (index >= gf3d_vgraphics.uniformBufferCount)
     {
@@ -342,9 +352,23 @@ VkBuffer gf3d_vgraphics_get_uniform_buffer_by_index(Uint32 index)
         return VK_NULL_HANDLE;
     }
     return gf3d_vgraphics.uniformBuffers[index];
+}*/
+UBOManager *gf3d_vgraphics_get_uniform_buffer_manager()
+{
+	return gf3d_vgraphics.uboManager;
 }
 
-void gf3d_vgraphics_create_uniform_buffer()
+VkBuffer gf3d_vgraphics_get_dynamic_uniform_buffer()
+{
+	return gf3d_vgraphics_get_uniform_buffer_manager()->uboBuffer;
+}
+
+VkDeviceSize gf3d_vgraphics_get_dynamic_uniform_buffer_size()
+{
+	return gf3d_vgraphics_get_uniform_buffer_manager()->uboBuffersSize;
+}
+
+/*void gf3d_vgraphics_create_uniform_buffer()
 {
     int i;
     Uint32 buffercount = gf3d_swapchain_get_swap_image_count();
@@ -358,18 +382,19 @@ void gf3d_vgraphics_create_uniform_buffer()
     {
         gf3d_vgraphics_create_buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &gf3d_vgraphics.uniformBuffers[i], &gf3d_vgraphics.uniformBuffersMemory[i]);
     }
-}
+}*/
 
 void gf3d_vgraphics_close()
 {
     int i;
     slog("cleaning up vulkan graphics");
     
-    for (i = 0; i < gf3d_vgraphics.uniformBufferCount; i++)
+    /*for (i = 0; i < gf3d_vgraphics.uniformBufferCount; i++)
     {
         vkDestroyBuffer(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffers[i], NULL);
         vkFreeMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[i], NULL);
-    }
+    }*/
+	uniform_manager_free(gf3d_vgraphics.uboManager);
     
     
     if (gf3d_vgraphics.logicalDeviceCreated)
@@ -487,7 +512,8 @@ void gf3d_vgraphics_render_end(Uint32 imageIndex, Uint8 * keys, float direction)
     swapChains[0] = gf3d_swapchain_get();
 
     //gf3d_vgraphics_update_uniform_buffer(imageIndex);
-	move_model_test(imageIndex, direction);
+	//move_model_test(imageIndex, direction);
+	uniforms_flush(gf3d_vgraphics.uboManager, imageIndex);
 
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -712,7 +738,7 @@ uint32_t gf3d_vgraphics_find_memory_type(uint32_t typeFilter, VkMemoryPropertyFl
     return 0;
 }
 
-void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage)
+/*void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage)
 {
     void* data;
 	//gf3d_vgraphics.ubo.model[3][0] = 10.0; //Move object
@@ -721,9 +747,9 @@ void gf3d_vgraphics_update_uniform_buffer(uint32_t currentImage)
         memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
 
     vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);
-}
+}*/
 
-void move_model_test(uint32_t currentImage, float direction)
+/*void move_model_test(uint32_t currentImage, float direction)
 {
 	void *data;
 	if (direction > 0.0f)
@@ -742,9 +768,9 @@ void move_model_test(uint32_t currentImage, float direction)
 	vkMapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage], 0, sizeof(UniformBufferObject), 0, &data);
 	memcpy(data, &gf3d_vgraphics.ubo, sizeof(UniformBufferObject));
 	vkUnmapMemory(gf3d_vgraphics.device, gf3d_vgraphics.uniformBuffersMemory[currentImage]);
-}
+}*/
 
-void gf3d_vgraphics_rotate_camera(float degrees)
+/*void gf3d_vgraphics_rotate_camera(float degrees)
 {
     gf3d_matrix_rotate(
         gf3d_vgraphics.ubo.model,
@@ -752,7 +778,7 @@ void gf3d_vgraphics_rotate_camera(float degrees)
         degrees,
         vector3d(0,0,1));
 
-}
+}*/
 
 Pipeline *gf3d_vgraphics_get_graphics_pipeline()
 {

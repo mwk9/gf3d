@@ -41,15 +41,25 @@ int main(int argc,char *argv[])
     //model = gf3d_model_load("bird_maya");
     //model2 = gf3d_model_load("cube");
 	test_ent = entity_load("bird_maya2");
-	test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
+	test_ent->position.x -= 1;
+	test_ent->position.y -= 1;
+	test_ent->position.z -= 1;
+
+	test_ent2 = entity_load("agumon");
+	//test_ent2->ubo->model[3][0] = 5;
+	//test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
 	//test_ent2 = entity_load("cube");
     while(!done)
     {
+		test_ent->rotation.x += 0.1f;
+		test_ent2->rotation.x += 0.1f;
+		//test_ent2->rotation.y -= 0.05f;
+		//test_ent2->rotation.z -= 0.1f;
         SDL_PumpEvents();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState(NULL); // get the keyboard state for this frame
         //update game things here
         
-        gf3d_vgraphics_rotate_camera(0.03);
+        //gf3d_vgraphics_rotate_camera(0.03);
         
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -59,7 +69,9 @@ int main(int argc,char *argv[])
             //gf3d_model_draw(model,bufferFrame,commandBuffer);
             //gf3d_model_draw(model2,bufferFrame,commandBuffer);
 		entity_update_all();
+
 		entity_draw_all(bufferFrame, commandBuffer);
+		//entity_draw(test_ent, bufferFrame, commandBuffer);
             
         
 		if (keys[SDL_SCANCODE_D])

@@ -2,8 +2,11 @@
 #define __UNIFORMS__
 
 #include <vulkan/vulkan.h>
+#include <stdio.h>
+#include <string.h>
 #include "gf3d_matrix.h"
-#include "gf3d_vgraphics.h"
+#include "simple_logger.h"
+#include "entity.h"
 
 typedef struct uboManager_s
 {

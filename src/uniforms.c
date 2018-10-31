@@ -1,3 +1,4 @@
+#include <gf3d_vgraphics.h>
 #include "uniforms.h"
 
 /**
@@ -50,7 +51,7 @@ void uniforms_allocate_buffer(UBOManager *self)
 void uniforms_init_buffer_objects(UBOManager *self, float aspectRatio)
 {
 	static UniformBufferObject localUBO;
-	int i = 0;
+	Uint32 i = 0;
 
 	gf3d_matrix_identity(localUBO.model);
 	gf3d_matrix_identity(localUBO.view);
@@ -66,7 +67,7 @@ void uniforms_init_buffer_objects(UBOManager *self, float aspectRatio)
 	localUBO.proj[1][1] *= -1;
 	for (i = 0; i < self->numEntities; i++)
 	{
-		const UniformBufferObject *ubo = uniforms_get_local_reference(self, i);
+		UniformBufferObject *const ubo = uniforms_get_local_reference(self, i);
 		memcpy(ubo, &localUBO, uniforms_size());
 	}
 }
@@ -83,8 +84,11 @@ UBOManager * ubo_manager_init(Uint32 numEntities, Uint32 numSwapchainImages, int
 	manager->numSwapchainImages = numSwapchainImages;
 	manager->numUBOs = numEntities * numSwapchainImages;
 	alignedSize = uniforms_aligned_size();
-	manager->currentUBOStates = (UniformBufferObject *)malloc(alignedSize * numEntities);
-	memset(manager->currentUBOStates, 0, alignedSize * numEntities);
+	slog("sizeof UBO is (%i), aligned size is (%i)", sizeof(UniformBufferObject), alignedSize);
+	manager->currentUBOStates = (UniformBufferObject *)malloc(alignedSize * manager->numEntities);
+	memset(manager->currentUBOStates, 0, alignedSize * manager->numEntities);
+	//manager->mappedUBOBuffers = (UniformBufferObject *)malloc(alignedSize * numEntities * sizeof(Entity));
+	//memset(manager->mappedUBOBuffers, 0, alignedSize * numEntities * sizeof(Entity));
 
 	//buffer allocate
 	uniforms_allocate_buffer(manager);
@@ -121,7 +125,10 @@ Uint32 uniforms_get_reference_offset(UBOManager *self, Uint32 entityID, Uint32 s
 
 UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID)
 {
-	return (UniformBufferObject *)((void *)self->currentUBOStates) + (entityID * uniforms_aligned_size());
+	UniformBufferObject *obj = self->currentUBOStates;
+	Uint32 offset = uniforms_aligned_size() * entityID;
+	return &obj[entityID];
+	//return (self->currentUBOStates) + (entityID * uniforms_aligned_size());
 }
 
 Uint32 uniforms_size()
@@ -144,11 +151,14 @@ void uniforms_flush(UBOManager *self, Uint32 swapchainImageID)
 		0,
 		(void **)&self->mappedUBOBuffers
 	);
-	memcpy(self->mappedUBOBuffers, self->currentUBOStates, uboBlockSize);
-	memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-	memoryRange.size = uboBlockSize;
-	memoryRange.offset = swapchainImageBeginningOffset;
-	memoryRange.pNext = NULL;
-	vkFlushMappedMemoryRanges(gf3d_vgraphics_get_default_logical_device(), 1, &memoryRange);
+	{
+		memcpy(self->mappedUBOBuffers, self->currentUBOStates, uboBlockSize);
+		memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		memoryRange.size = uboBlockSize;
+		memoryRange.offset = swapchainImageBeginningOffset;
+		memoryRange.memory = self->uboBuffersDeviceMemory;
+		memoryRange.pNext = 0;
+		vkFlushMappedMemoryRanges(gf3d_vgraphics_get_default_logical_device(), 1, &memoryRange);
+	}
 	vkUnmapMemory(gf3d_vgraphics_get_default_logical_device(), self->uboBuffersDeviceMemory);
 }

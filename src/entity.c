@@ -28,6 +28,8 @@ void entity_system_close()
 
 void entity_system_init(Uint32 maxEntities)
 {
+	size_t i = 0;
+
 	if (maxEntities <= 0)
 	{
 		slog("Error: Cannot initialize Entity manager for zero or negative entities");
@@ -45,6 +47,11 @@ void entity_system_init(Uint32 maxEntities)
 	memset(entityManager.entityList, 0, sizeof(Entity) * maxEntities);
 	entityManager.maxEntities = maxEntities;
 
+	for (i = 0; i < entityManager.maxEntities; i++)
+	{
+		entityManager.entityList[i].id = i;
+	}
+
 	slog("Entity system initialized");
 	atexit(entity_system_close);
 }
@@ -59,7 +66,7 @@ Entity *entity_new()
 		{
 			slog("Found a spot for an entity at index (%i)", i);
 			memset(&entityManager.entityList[i], 0, sizeof(Entity));
-			entityManager.entityList[i].id = entityManager.increment++;
+			entityManager.entityList[i].id = i;
 			entityManager.entityList[i].inUse = 1;
 			//entityManager.entityList[i].model = (Model *)malloc(sizeof(Model));
 			return &entityManager.entityList[i];
@@ -82,6 +89,7 @@ Entity *entity_load(char *modelFilename)
 
 	e->model = gf3d_model_load(modelFilename);
 	//entity_configure_render_pool(e);
+	e->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), (Uint32)e->id);
 
 	return e;
 }
@@ -114,6 +122,9 @@ void entity_free_all()
 
 void entity_update(Entity *self)
 {
+	Vector3D rotationAxisX = vector3d(1, 0, 0);
+	Vector3D rotationAxisY = vector3d(0, 1, 0);
+	Vector3D rotationAxisZ = vector3d(0, 0, 1);
 	if (!self)
 	{
 		slog("Error: Cannot update an entity that is NULL");
@@ -129,11 +140,13 @@ void entity_update(Entity *self)
 		self->update(self);
 	}
 
-	gf3d_matrix_identity(self->ubo.model);
-	gf3d_matrix_make_translation(self->ubo.model, self->position);
-
-	gf3d_matrix_rotate(self->ubo.model, self->ubo.model, 0.05f, self->rotation);
-
+	gf3d_matrix_identity(self->ubo->model);
+	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
+	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
+	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
+	self->ubo->model[3][0] = self->position.x;
+	self->ubo->model[3][1] = self->position.y;
+	self->ubo->model[3][2] = self->position.z;
 	//gravity and physics stuff goes here
 }
 
@@ -150,7 +163,7 @@ void entity_update_all()
 	}
 }
 
-void entity_set_draw_position(Entity *self, Vector3D position)
+/*void entity_set_draw_position(Entity *self, Vector3D position)
 {
 	int i = 0;
 	void *data;
@@ -161,14 +174,14 @@ void entity_set_draw_position(Entity *self, Vector3D position)
 		return;
 	}
 
-	self->ubo.model[3][0] = 30.0;
-	self->ubo.model[3][1] = 30.0;
-	self->ubo.model[3][2] = 30.0;
+	self->ubo->model[3][0] = 30.0;
+	self->ubo->model[3][1] = 30.0;
+	self->ubo->model[3][2] = 30.0;
 	
 	vkMapMemory(get_device(), get_uniform_buffers_memory()[i], 0, sizeof(self->ubo), 0, &data);
 	memcpy(data, &(self->ubo), sizeof(self->ubo));
 	vkUnmapMemory(get_device(), get_uniform_buffers_memory()[i]);
-}
+}*/
 
 void entity_configure_render_pool(Entity *self)
 {
@@ -217,7 +230,7 @@ void entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer
 	}
 	
 	//entity_configure_render_pool(self);
-	gf3d_model_draw(self->model, bufferFrame, commandBuffer);
+	gf3d_model_draw((Uint32)self->id, bufferFrame, self->model, bufferFrame, commandBuffer);
 	//gf3d_command_rendering_end(self->commandBuffer);
 	//gf3d_vgraphics_render_end(self->bufferFrame);
 }
@@ -228,9 +241,9 @@ void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 
 	for (i = 0; i < entityManager.maxEntities; i++)
 	{
-		if (entityManager.entityList[i].inUse)
+		if (entityManager.entityList[i].inUse > 0)
 		{
-			if (entityManager.entityList[i].model)
+			if (entityManager.entityList[i].model != NULL)
 			{
 				entity_draw(&entityManager.entityList[i], bufferFrame, commandBuffer);
 			}

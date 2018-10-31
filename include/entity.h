@@ -10,7 +10,7 @@
 #include "gf3d_model.h"
 #include "simple_logger.h"
 
-#define MAX_ENTITY_NUM 10
+#define MAX_ENTITY_NUM 1024
 
 typedef struct entity_s
 {
@@ -27,7 +27,7 @@ typedef struct entity_s
 	//Mesh data
 	Uint32 bufferFrame;
 	VkCommandBuffer commandBuffer;
-	UniformBufferObject ubo;
+	UniformBufferObject *ubo;
 	Model *model;
 
 	//function pointers for logic

@@ -167,10 +167,12 @@ void gf3d_mesh_scene_add(Mesh *mesh)
     if (!mesh)return;
 }
 
-void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet)
+void gf3d_mesh_render(Uint32 entityID, Uint32 swapchainImageID, Mesh *mesh, VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet)
 {
     VkDeviceSize offsets[] = {0};
     Pipeline *pipe;
+	UBOManager *uboManager = NULL;
+	Uint32 dynamicOffsets = 0;
     if (!mesh)
     {
         slog("cannot render a NULL mesh");
@@ -181,7 +183,10 @@ void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet 
     
     vkCmdBindIndexBuffer(commandBuffer, mesh->faceBuffer, 0, VK_INDEX_TYPE_UINT32);
     
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->pipelineLayout, 0, 1, descriptorSet, 0, NULL);
+	uboManager = gf3d_vgraphics_get_uniform_buffer_manager();
+	dynamicOffsets = uniforms_get_reference_offset(uboManager, entityID, swapchainImageID);
+
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->pipelineLayout, 0, 1, descriptorSet, 0, &dynamicOffsets);
     
     vkCmdDrawIndexed(commandBuffer, mesh->faceCount * 3, 1, 0, 0, 0);
 }

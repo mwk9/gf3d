@@ -65,10 +65,12 @@ void gf3d_mesh_free(Mesh *mesh);
 /**
  * @brief adds a mesh to the render pass
  * @note: must be called within the render pass
+ * @param entityID The ID of the entity to render
+ * @param swapchainImageID The swapchain image you want to render
  * @param mesh the mesh to render
  * @param com the command pool to use to handle the request we are rendering with
  */
-void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
+void gf3d_mesh_render(Uint32 entityID, Uint32 swapchainImageID, Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 
 /**
  * @brief create a mesh's internal buffers based on vertices
