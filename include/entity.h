@@ -23,6 +23,8 @@ typedef struct entity_s
 	Vector3D rotation;
 	Vector3D velocity;
 	Vector3D acceleration;
+	Uint8 useGravity;
+	Uint8 testNum;
 
 	//Mesh data
 	Uint32 bufferFrame;

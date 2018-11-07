@@ -15,6 +15,7 @@ typedef struct uboManager_s
 	Uint32 numUBOs;
 
 	VkDeviceSize uboBuffersSize;
+	Uint32 alignedSize;
 	VkBuffer uboBuffer;
 	VkDeviceMemory uboBuffersDeviceMemory;
 
@@ -36,7 +37,7 @@ Uint32 uniforms_get_reference_offset(UBOManager *self, Uint32 entityID, Uint32 s
  * @param entityID The ID of the specific entity to grab the UBO of
  * @returns A pointer to the current UBO state of the requested entity
  */
-UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID);
+UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID, Uint32 swapchainFrameID);
 
 /**
  * @brief Gets the size of a UBO

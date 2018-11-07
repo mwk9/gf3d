@@ -37,7 +37,7 @@ Uint32 uniforms_aligned_size()
  */
 void uniforms_allocate_buffer(UBOManager *self)
 {
-	self->uboBuffersSize = self->numUBOs * uniforms_aligned_size();
+	self->uboBuffersSize = self->numUBOs * self->alignedSize;
 	gf3d_vgraphics_create_buffer
 	(
 		self->uboBuffersSize,
@@ -67,15 +67,14 @@ void uniforms_init_buffer_objects(UBOManager *self, float aspectRatio)
 	localUBO.proj[1][1] *= -1;
 	for (i = 0; i < self->numEntities; i++)
 	{
-		UniformBufferObject *const ubo = uniforms_get_local_reference(self, i);
-		memcpy(ubo, &localUBO, uniforms_size());
+		UniformBufferObject *const ubo = uniforms_get_local_reference(self, i, 0);
+		memcpy(ubo, &localUBO, self->alignedSize);
 	}
 }
 
 UBOManager * ubo_manager_init(Uint32 numEntities, Uint32 numSwapchainImages, int renderWidth, int renderHeight)
 {
 	UBOManager *manager = NULL;
-	Uint32 alignedSize = 0;
 
 	manager = (UBOManager *)malloc(sizeof(UBOManager));
 	memset(manager, 0, sizeof(UBOManager));
@@ -83,12 +82,12 @@ UBOManager * ubo_manager_init(Uint32 numEntities, Uint32 numSwapchainImages, int
 	manager->numEntities = numEntities;
 	manager->numSwapchainImages = numSwapchainImages;
 	manager->numUBOs = numEntities * numSwapchainImages;
-	alignedSize = uniforms_aligned_size();
-	slog("sizeof UBO is (%i), aligned size is (%i)", sizeof(UniformBufferObject), alignedSize);
-	manager->currentUBOStates = (UniformBufferObject *)malloc(alignedSize * manager->numEntities);
-	memset(manager->currentUBOStates, 0, alignedSize * manager->numEntities);
-	//manager->mappedUBOBuffers = (UniformBufferObject *)malloc(alignedSize * numEntities * sizeof(Entity));
-	//memset(manager->mappedUBOBuffers, 0, alignedSize * numEntities * sizeof(Entity));
+	manager->alignedSize = uniforms_aligned_size();
+	slog("sizeof UBO is (%i), aligned size is (%i)", sizeof(UniformBufferObject), manager->alignedSize);
+	manager->currentUBOStates = (UniformBufferObject *)malloc(manager->alignedSize * manager->numEntities * manager->numSwapchainImages);
+	memset(manager->currentUBOStates, 0, manager->alignedSize * manager->numEntities * manager->numSwapchainImages);
+	//manager->currentUBOStates = (UniformBufferObject *)malloc(uniforms_size() * manager->numEntities);
+	//memset(manager->currentUBOStates, 0, uniforms_size() * manager->numEntities);
 
 	//buffer allocate
 	uniforms_allocate_buffer(manager);
@@ -120,15 +119,16 @@ Uint32 uniforms_get_reference_index(UBOManager *self, Uint32 entityID, Uint32 sw
 
 Uint32 uniforms_get_reference_offset(UBOManager *self, Uint32 entityID, Uint32 swapchainFrameID)
 {
-	return uniforms_get_reference_index(self, entityID, swapchainFrameID) * uniforms_aligned_size();
+	return uniforms_get_reference_index(self, entityID, swapchainFrameID) * self->alignedSize;
 }
 
-UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID)
+UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID, Uint32 swapchainFrameID)
 {
-	UniformBufferObject *obj = self->currentUBOStates;
-	Uint32 offset = uniforms_aligned_size() * entityID;
-	return &obj[entityID];
-	//return (self->currentUBOStates) + (entityID * uniforms_aligned_size());
+	void *obj = (void *)self->currentUBOStates;
+	Uint32 offset = entityID + (self->numEntities * swapchainFrameID);
+	//return &obj[entityID];
+	//return self->currentUBOStates + entityID;
+	return (UniformBufferObject *)(self->currentUBOStates + offset);
 }
 
 Uint32 uniforms_size()
@@ -139,7 +139,8 @@ Uint32 uniforms_size()
 void uniforms_flush(UBOManager *self, Uint32 swapchainImageID)
 {
 	Uint32 swapchainImageBeginningOffset = uniforms_get_reference_offset(self, 0, swapchainImageID);
-	Uint32 uboBlockSize = uniforms_aligned_size() * self->numEntities;
+	Uint32 uboBlockSize = self->alignedSize * self->numEntities;
+	//Uint32 uboBlockSize = uniforms_size() * self->numEntities;
 	VkMappedMemoryRange memoryRange = {0};
 
 	vkMapMemory

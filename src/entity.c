@@ -23,7 +23,7 @@ void entity_system_close()
 		free(entityManager.entityList);
 	}
 	memset(&entityManager, 0, sizeof(entityManager));
-	slog("Entity system closed");
+	slog("Entity system closed.");
 }
 
 void entity_system_init(Uint32 maxEntities)
@@ -32,7 +32,7 @@ void entity_system_init(Uint32 maxEntities)
 
 	if (maxEntities <= 0)
 	{
-		slog("Error: Cannot initialize Entity manager for zero or negative entities");
+		slog("Error: Cannot initialize Entity manager for zero or negative entities.");
 		return;
 	}
 	
@@ -40,7 +40,7 @@ void entity_system_init(Uint32 maxEntities)
 	entityManager.entityList = (Entity *)malloc(sizeof(Entity) * maxEntities);
 	if (!entityManager.entityList)
 	{
-		slog("Error: Could not allocate memory of the entity list");
+		slog("Error: Could not allocate memory of the entity list.");
 		entity_system_close();
 		return;
 	}
@@ -52,9 +52,36 @@ void entity_system_init(Uint32 maxEntities)
 		entityManager.entityList[i].id = i;
 	}
 
-	slog("Entity system initialized");
+	slog("Entity system initialized.");
 	atexit(entity_system_close);
 }
+
+/*void entity_set_ubo(Entity *self)
+{
+	static UniformBufferObject localUBO;
+	if (!self)
+	{
+		return;
+	}
+
+	gf3d_matrix_identity(localUBO.model);
+	gf3d_matrix_identity(localUBO.view);
+	gf3d_matrix_identity(localUBO.proj);
+	gf3d_matrix_view
+		(
+		localUBO.view,
+		vector3d(2.0f, 20.0f, 2.0f),
+		vector3d(0.0f, 0.0f, 0.0f),
+		vector3d(0.0f, 0.0f, 1.0f)
+		);
+	gf3d_matrix_perspective(localUBO.proj, (float)(45 * GF3D_DEGTORAD), 1200.0f / 700.0f, 0.1f, 100.0f);
+	localUBO.proj[1][1] *= -1;
+	if (localUBO.proj[1][1] > 0)
+	{
+		localUBO.proj[1][1] *= -1;
+	}
+	memcpy(self->ubo, &localUBO, sizeof(Un))
+}*/
 
 Entity *entity_new()
 {
@@ -69,11 +96,12 @@ Entity *entity_new()
 			entityManager.entityList[i].id = i;
 			entityManager.entityList[i].inUse = 1;
 			//entityManager.entityList[i].model = (Model *)malloc(sizeof(Model));
+			entityManager.entityList[i].ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), i, 0);
 			return &entityManager.entityList[i];
 		}
 	}
 
-	slog("Error: Out of entity address for a new entity");
+	slog("Error: Out of entity address for a new entity.");
 	return NULL;
 }
 
@@ -89,7 +117,7 @@ Entity *entity_load(char *modelFilename)
 
 	e->model = gf3d_model_load(modelFilename);
 	//entity_configure_render_pool(e);
-	e->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), (Uint32)e->id);
+	//e->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), (Uint32)e->id);
 
 	return e;
 }
@@ -98,7 +126,7 @@ void entity_free(Entity *e)
 {
 	if (!e)
 	{
-		slog("Error: Cannot free an entity that is NULL");
+		slog("Error: Cannot free an entity that is NULL.");
 		return;
 	}
 	//extra free behaviour, if any
@@ -125,14 +153,16 @@ void entity_update(Entity *self)
 	Vector3D rotationAxisX = vector3d(1, 0, 0);
 	Vector3D rotationAxisY = vector3d(0, 1, 0);
 	Vector3D rotationAxisZ = vector3d(0, 0, 1);
+	void *data;
+
 	if (!self)
 	{
-		slog("Error: Cannot update an entity that is NULL");
+		slog("Error: Cannot update an entity that is NULL.");
 		return;
 	}
 	if (self->inUse == 0)
 	{
-		slog("Error: Cannot update an entity that is not in use");
+		slog("Error: Cannot update an entity that is not in use.");
 		return;
 	}
 	if (self->update)
@@ -140,13 +170,34 @@ void entity_update(Entity *self)
 		self->update(self);
 	}
 
-	gf3d_matrix_identity(self->ubo->model);
+	//self->position.y -= 0.1;
+
+	//gf3d_matrix_identity(self->ubo->model);
 	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
 	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
 	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
 	self->ubo->model[3][0] = self->position.x;
 	self->ubo->model[3][1] = self->position.y;
 	self->ubo->model[3][2] = self->position.z;
+	if (self->id == 0)
+	{
+		if (self->testNum == 0)
+		{
+			self->ubo->model[2][2] -= 0.05f;
+			if (self->ubo->model[2][2] <= 0.01)
+			{
+				self->testNum = 1;
+			}
+		}
+		else if (self->testNum == 1)
+		{
+			self->ubo->model[2][2] += 0.05f;
+			if (self->ubo->model[2][2] >= 1)
+			{
+				self->testNum = 0;
+			}
+		}
+	}
 	//gravity and physics stuff goes here
 }
 
@@ -187,7 +238,7 @@ void entity_configure_render_pool(Entity *self)
 {
 	if (!self)
 	{
-		slog("Error: cannot configure renders for a null entity");
+		slog("Error: cannot configure renders for a null entity.");
 		return;
 	}
 

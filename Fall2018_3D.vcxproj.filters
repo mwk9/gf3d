@@ -84,6 +84,9 @@
     <ClInclude Include="include\uniforms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sound.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\game.c">
@@ -149,24 +152,15 @@
     <ClCompile Include="src\uniforms.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\sound.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\basic.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\basic.vert">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\default.frag">
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\default.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\test.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\test.frag">
       <Filter>shaders</Filter>
     </None>
     <None Include="models\cube.json">
@@ -175,10 +169,10 @@
     <None Include="models\susanne.json">
       <Filter>models</Filter>
     </None>
-    <None Include="shaders\testBuf.frag">
+    <None Include="shaders\sin.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\testBuf.vert">
+    <None Include="shaders\sin.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

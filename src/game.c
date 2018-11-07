@@ -11,6 +11,7 @@
 #include "gf3d_texture.h"
 #include "entity.h"
 #include "uniforms.h"
+#include "sound.h"
 
 int main(int argc,char *argv[])
 {
@@ -21,12 +22,14 @@ int main(int argc,char *argv[])
     //Model *model;
     //Model *model2;
 	Entity *test_ent;
-	Entity *test_ent2;
+	Entity *test_ent2 = NULL;
 	float direction = 0.0f;
+	Sound *dootdoot = NULL;
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
 	entity_system_init(MAX_ENTITY_NUM);
+	audio_system_init(MAX_SOUND_NUM, MAX_CHANNEL_NUM, 0, 0, 1, 1);
     gf3d_vgraphics_init(
         "gf3d",                 //program name
         1200,                   //screen width
@@ -41,18 +44,29 @@ int main(int argc,char *argv[])
     //model = gf3d_model_load("bird_maya");
     //model2 = gf3d_model_load("cube");
 	test_ent = entity_load("bird_maya2");
-	test_ent->position.x -= 1;
-	test_ent->position.y -= 1;
-	test_ent->position.z -= 1;
+	test_ent->position.x = 5.0f;
+	test_ent->position.z = -5.0f;
 
-	test_ent2 = entity_load("agumon");
+	//test_ent2 = entity_load("agumon");
+	//test_ent2->position.x = -1.0f;
+	//test_ent2->position.y = -3.0f;
+	
 	//test_ent2->ubo->model[3][0] = 5;
 	//test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
 	//test_ent2 = entity_load("cube");
+
+	dootdoot = sound_load("audio/rift.ogg", 5.0f, -1);
+	sound_play(dootdoot, -1, 0, -1, 0);
+
     while(!done)
     {
-		test_ent->rotation.x += 0.1f;
-		test_ent2->rotation.x += 0.1f;
+		test_ent->rotation.z = 0.05f;
+		if (test_ent2)
+		{
+			//test_ent2->rotation.x = 0.1f;
+			test_ent2->position.x -= 0.1f;
+			test_ent2->rotation.y = 0.075f;
+		}
 		//test_ent2->rotation.y -= 0.05f;
 		//test_ent2->rotation.z -= 0.1f;
         SDL_PumpEvents();   // update SDL's internal event structures
@@ -91,8 +105,12 @@ int main(int argc,char *argv[])
 
 		if (keys[SDL_SCANCODE_B])
 		{
-			test_ent = entity_load("agumon");
+			test_ent2 = entity_load("agumon");
 			//entity_set_draw_position(test_ent, vector3d(0.0f,0.0f,0.0f));
+		}
+		if (keys[SDL_SCANCODE_N])
+		{
+			entity_free(test_ent2);
 		}
 
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition

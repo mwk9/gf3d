@@ -57,3 +57,8 @@ gf3d
 *.bat
 Debug/
 Release/
+
+# Currently ignoring audio files
+*.ogg
+*.mp3
+*.wav
