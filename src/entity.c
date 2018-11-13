@@ -179,7 +179,7 @@ void entity_update(Entity *self)
 	self->ubo->model[3][0] = self->position.x;
 	self->ubo->model[3][1] = self->position.y;
 	self->ubo->model[3][2] = self->position.z;
-	if (self->id == 0)
+	/*if (self->id == 0)
 	{
 		if (self->testNum == 0)
 		{
@@ -197,7 +197,7 @@ void entity_update(Entity *self)
 				self->testNum = 0;
 			}
 		}
-	}
+	}*/
 	//gravity and physics stuff goes here
 }
 

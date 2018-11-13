@@ -30,6 +30,11 @@ typedef struct
     VkDeviceMemory  faceBufferMemory;
 }Mesh;
 
+typedef struct
+{
+	float time;
+}Time;
+
 /**
  * @brief initializes the mesh system / configures internal data about mesh based rendering
  * @param mesh_max the maximum allowed simultaneous meshes supported at once.  Must be > 0

@@ -15,10 +15,16 @@ typedef struct cube_s
 	float x, y, z, w, h, d;
 }Cube;
 
+typedef struct sphere_s
+{
+	float x, y, z, r;
+}Sphere;
+
 typedef enum
 {
 	ST_RECT,
-	ST_CUBE
+	ST_CUBE,
+	ST_SPHERE
 }ShapeType;
 
 typedef struct shape_s
@@ -26,8 +32,9 @@ typedef struct shape_s
 	ShapeType type;
 	union
 	{
-		Rect r;
-		Cube c;
+		Rect rect;
+		Cube cube;
+		Sphere sphere;
 	}s;
 }Shape;
 
@@ -54,6 +61,16 @@ Rect * rect_new(float x, float y, float width, float height);
 Cube * cube_new(float x, float y, float z, float width, float height, float depth);
 
 /**
+ * @brief Allocates memory for a new Sphere
+ * @param x The x position of the center of the Sphere
+ * @param y The y position of the center of the Sphere
+ * @param z The z position of the center of the Sphere
+ * @param radius The radius of the Sphere
+ * @returns A pointer to the new Sphere; NULL if could not allocate memory
+ */
+Sphere * sphere_new(float x, float y, float z, float radius);
+
+/**
  * @brief Checks to see if a point is inside of a Rect
  * @param x The x value of the point
  * @param y The y value of the point
@@ -77,5 +94,8 @@ Uint8 rect_in_rect(Rect *a, Rect *b);
  * @returns 1 if collision; 0 if no collision or either Cube was NULL
  */
 Uint8 cube_in_cube(Cube *a, Cube *b);
+
+Uint8 point_in_sphere(float x, float y, Sphere *sphere);
+Uint8 sphere_in_sphere(Sphere *a, Sphere *b);
 
 #endif // !__SHAPE__

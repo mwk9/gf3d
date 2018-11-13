@@ -4,18 +4,22 @@
 layout(binding = 1) uniform sampler2D texSampler;
 layout(location = 0) in vec3 fragNormal;
 layout(location = 1) in vec2 fragTexCoord;
+layout(location = 2) in float fragTime;
 
 layout(location = 0) out vec4 outColor;
 
-uniform vec3 lightDir;
-
+vec2 SineWave(vec2 p)
+{
+	float pi = 3.14159;
+	float A = 0.15;
+	float w = 10.0 * pi;
+	float t = 30.0 * pi / 180.0;
+	float y = sin(w * p.x + t) * A;
+	return vec2(p.x, (p.y + y));
+}
 
 void main()
 {
-	vec3 n = normalize(fragNormal);
-	vec3 l = normalize(light_dir);
-	float kd = clamp(dot(n, -l), 0.0, 1.0);
-    outColor = texture(texSampler, fragTexCoord);
-	vec3 color = kd * outColor;
-	gl_FragColor = vec4(color, 1.0);
+	vec2 uv = SineWave(fragTexCoord);
+    outColor = texture(texSampler, uv);
 }

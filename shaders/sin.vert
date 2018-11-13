@@ -15,24 +15,15 @@ out gl_PerVertex
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
+layout(location = 3) in float time;
 layout(location = 0) out vec3 fragNormal;
 layout(location = 1) out vec2 fragTexCoord;
-
-layout float t;
-uniform float freq;
-uniform float amp;
+layout(location = 2) out float fragTime;
 
 void main()
 {
-	float h = amp * sin(freq * gl_Vertex.y + t);
-	vec3 n = gl_Normal;
-	n.y -= h;
-	inNormal = gl_NormalMatrix * normalize(n);
-	inTexCoord = gl_MultiTexCoord0.xy;
-	vec4 p = gl_Vertex;
-	p.z += h;
-
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0) * p;
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
     fragNormal = inNormal;
     fragTexCoord = inTexCoord;
+	fragTime = time;
 }

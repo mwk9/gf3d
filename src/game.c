@@ -10,6 +10,7 @@
 #include "gf3d_vector.h"
 #include "gf3d_texture.h"
 #include "entity.h"
+#include "shape.h"
 #include "uniforms.h"
 #include "sound.h"
 
@@ -25,6 +26,8 @@ int main(int argc,char *argv[])
 	Entity *test_ent2 = NULL;
 	float direction = 0.0f;
 	Sound *dootdoot = NULL;
+	Sphere *s1 = sphere_new(0, 0, 0, 5);
+	Sphere *s2 = sphere_new(10, 10, 10, 3);
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
@@ -43,9 +46,9 @@ int main(int argc,char *argv[])
     slog("gf3d main loop begin");
     //model = gf3d_model_load("bird_maya");
     //model2 = gf3d_model_load("cube");
-	test_ent = entity_load("bird_maya2");
-	test_ent->position.x = 5.0f;
-	test_ent->position.z = -5.0f;
+	test_ent = entity_load("cube");
+	test_ent->position.x = 0.0f;
+	test_ent->position.z = 0.0f;
 
 	//test_ent2 = entity_load("agumon");
 	//test_ent2->position.x = -1.0f;
@@ -57,6 +60,11 @@ int main(int argc,char *argv[])
 
 	dootdoot = sound_load("audio/rift.ogg", 5.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
+
+	if (sphere_in_sphere(s1, s2))
+	{
+		slog("collision!");
+	}
 
     while(!done)
     {
