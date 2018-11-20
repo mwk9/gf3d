@@ -8,6 +8,7 @@
 #include "gf3d_text.h"
 #include "gf3d_matrix.h"
 #include "gf3d_model.h"
+#include "shape.h"
 #include "simple_logger.h"
 
 #define MAX_ENTITY_NUM 1024
@@ -25,6 +26,7 @@ typedef struct entity_s
 	Vector3D acceleration;
 	Uint8 useGravity;
 	Uint8 testNum;
+	Shape *shape;
 
 	//Mesh data
 	Uint32 bufferFrame;

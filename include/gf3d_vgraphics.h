@@ -11,6 +11,8 @@
 
 #define GF3D_VGRAPHICS_DISCRETE 1   //Choosing whether to use discrete [1] or integrated graphics [0]
 
+extern int windowWidth, windowHeight;
+
 /**
  * @brief init Vulkan / SDL, setup device and initialize infrastructure for 3d graphics
  */

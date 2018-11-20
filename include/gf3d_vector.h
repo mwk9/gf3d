@@ -331,5 +331,7 @@ void vector3d_rotate_about_x(Vector3D *vect, float angle);
 void vector3d_rotate_about_y(Vector3D *vect, float angle);
 void vector3d_rotate_about_z(Vector3D *vect, float angle);
 
+void Vector3D_add(Vector3D *dst, Vector3D *a, Vector3D *b);
+void Vector3D_sub(Vector3D *dst, Vector3D *a, Vector3D *b);
 
 #endif

@@ -545,4 +545,18 @@ void vector3d_cross_product(Vector3D *out, Vector3D v1, Vector3D v2)
   out->z = v1.x*v2.y - v1.y*v2.x;
 }
 
+void Vector3D_add(Vector3D *dst, Vector3D *a, Vector3D *b)
+{
+	dst->x = a->x + b->x;
+	dst->y = a->y + b->y;
+	dst->z = a->z + b->z;
+}
+
+void Vector3D_sub(Vector3D *dst, Vector3D *a, Vector3D *b)
+{
+	dst->x = a->x - b->x;
+	dst->y = a->y - b->y;
+	dst->z = a->z - b->z;
+}
+
 /*eol@eof*/

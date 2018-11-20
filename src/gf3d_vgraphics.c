@@ -98,6 +98,8 @@ void gf3d_vgraphics_setup(
     Bool enableValidation
 );
 
+int windowHeight, windowWidth;
+
 /*VkDeviceMemory *get_uniform_buffers_memory()
 {
 	return gf3d_vgraphics.uniformBuffersMemory;
@@ -113,6 +115,9 @@ void gf3d_vgraphics_init(
 )
 {
     VkDevice device;
+
+	windowWidth = renderWidth;
+	windowHeight = renderHeight;
 
 	//gf3d_vgraphics.ubo = (UniformBufferObject *)malloc(sizeof(UniformBufferObject) * maxUBOs);
 	//memset(gf3d_vgraphics.ubo, 0, sizeof(UniformBufferObject) * maxUBOs);

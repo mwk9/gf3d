@@ -10,7 +10,8 @@
 #include "gf3d_vector.h"
 #include "gf3d_texture.h"
 #include "entity.h"
-#include "shape.h"
+#include "player.h"
+//#include "shape.h"
 #include "uniforms.h"
 #include "sound.h"
 
@@ -26,12 +27,13 @@ int main(int argc,char *argv[])
 	Entity *test_ent2 = NULL;
 	float direction = 0.0f;
 	Sound *dootdoot = NULL;
-	Sphere *s1 = sphere_new(0, 0, 0, 5);
-	Sphere *s2 = sphere_new(10, 10, 10, 3);
+	Shape *s1 = NULL;
+	Shape *s2 = NULL;
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
 	entity_system_init(MAX_ENTITY_NUM);
+	shape_system_init(MAX_ENTITY_NUM * 2);
 	audio_system_init(MAX_SOUND_NUM, MAX_CHANNEL_NUM, 0, 0, 1, 1);
     gf3d_vgraphics_init(
         "gf3d",                 //program name
@@ -49,6 +51,9 @@ int main(int argc,char *argv[])
 	test_ent = entity_load("cube");
 	test_ent->position.x = 0.0f;
 	test_ent->position.z = 0.0f;
+	//test_ent->rotation.x = 1.0f;
+	//gf3d_matrix_rotate(test_ent->ubo->model, test_ent->ubo->model, test_ent->rotation.x, vector3d(1, 0, 0));
+	//test_ent->rotation.x = 0.0f;
 
 	//test_ent2 = entity_load("agumon");
 	//test_ent2->position.x = -1.0f;
@@ -61,14 +66,17 @@ int main(int argc,char *argv[])
 	dootdoot = sound_load("audio/rift.ogg", 5.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
 
-	if (sphere_in_sphere(s1, s2))
-	{
-		slog("collision!");
-	}
+	s1 = sphere_new(0, 0, 0, 5);
+	s2 = sphere_new(0, 0, 1, 3);
+	slog("rect (%i), cube (%i), sphere (%i), max size (%i)", sizeof(Rect), sizeof(Cube), sizeof(Sphere), sizeof_max(Rect, Cube, Sphere));
 
     while(!done)
     {
-		test_ent->rotation.z = 0.05f;
+		if (test_ent)
+		{
+			//test_ent->position.y -= 0.01;
+			test_ent->rotation.z = 0.05f;
+		}
 		if (test_ent2)
 		{
 			//test_ent2->rotation.x = 0.1f;
@@ -110,6 +118,12 @@ int main(int argc,char *argv[])
 		}
 		gf3d_command_rendering_end(commandBuffer);
 		gf3d_vgraphics_render_end(bufferFrame, keys, direction);
+		
+		if (sphere_in_sphere(&s1->shape.sphere, &s2->shape.sphere))
+		{
+			slog("collision!");
+		}
+		s2->shape.sphere.x -= 0.1f;
 
 		if (keys[SDL_SCANCODE_B])
 		{

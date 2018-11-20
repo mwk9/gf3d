@@ -235,3 +235,80 @@ void gf3d_matrix_translate(
     gf3d_matrix_multiply(temp,translate,out);
     gf3d_matrix_copy(out,temp);
 }
+
+void gf3d_matrix_lookat(
+	Matrix4 m,
+	Vector3D eye,
+	Vector3D center,
+	Vector3D up
+)
+{
+	Vector3D f, s, t;
+	Vector3D inverseEye = 
+	{
+		eye.x * -1.0f,
+		eye.y * -1.0f,
+		eye.z * -1.0f
+	};
+
+	Vector3D_sub(&f, &center, &eye);
+	vector3d_normalize(&f);
+
+	vector3d_cross_product(&s, f, up);
+	vector3d_normalize(&s);
+
+	vector3d_cross_product(&t, s, f);
+
+	m[0][0] = s.x;
+	m[0][1] = t.x;
+	m[0][2] = f.x * -1.0f;
+	m[0][3] = 0.0f;
+
+	m[1][0] = s.y;
+	m[1][1] = t.y;
+	m[1][2] = f.y * -1.0f;
+	m[1][3] = 0.0f;
+
+	m[2][0] = s.z;
+	m[2][1] = t.z;
+	m[2][2] = f.z * -1.0f;
+	m[2][3] = 0.0f;
+
+	m[3][0] = 0.0f;
+	m[3][1] = 0.0f;
+	m[3][2] = 0.0f;
+	m[3][3] = 1.0f;
+
+	gf3d_matrix_translate(m, inverseEye);
+}
+
+void gf3d_matrix_perspective_vec3(
+	Matrix4 m,
+	float yFOV,
+	float aspectRatio,
+	float n,
+	float f
+)
+{
+	float const a = 1.0f / tan(yFOV / 2.0f);
+
+	m[0][0] = a / aspectRatio;
+	m[0][1] = 0.0f;
+	m[0][2] = 0.0f;
+	m[0][3] = 0.0f;
+
+	m[1][0] = 0.0f;
+	m[1][1] = a;
+	m[1][2] = 0.0f;
+	m[1][2] = 0.0f;
+
+	m[2][0] = 0.0f;
+	m[2][1] = 0.0f;
+	m[2][2] = -((f + n) / (f - n));
+	m[2][3] = -1.0f;
+
+	m[3][0] = 0.0f;
+	m[3][1] = 0.0f;
+	m[3][2] = -((2.0f * f * n) / (f - n));
+	m[3][3] = 0.0f;
+}

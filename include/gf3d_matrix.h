@@ -118,4 +118,19 @@ void gf3d_matrix_rotate(
     Vector3D    axis
 );
 
+void gf3d_matrix_lookat(
+	Matrix4 m,
+	Vector3D eye,
+	Vector3D center,
+	Vector3D up
+);
+
+void gf3d_matrix_perspective_vec3(
+	Matrix4 m,
+	float yFOV,
+	float aspectRatio,
+	float n,
+	float f
+);
+
 #endif

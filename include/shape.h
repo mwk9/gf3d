@@ -20,6 +20,8 @@ typedef struct sphere_s
 	float x, y, z, r;
 }Sphere;
 
+#define sizeof_max(s1, s2, s3) sizeof(union {s1 a; s2 b; s3 c;})
+
 typedef enum
 {
 	ST_RECT,
@@ -29,14 +31,27 @@ typedef enum
 
 typedef struct shape_s
 {
+	Uint8 inUse;
 	ShapeType type;
 	union
 	{
 		Rect rect;
 		Cube cube;
 		Sphere sphere;
-	}s;
+	}shape;
 }Shape;
+
+/**
+ * @brief Initializes the Shape system
+ * @param maxShapes The maximum number of Shapes that can exist
+ */
+void shape_system_init(Uint32 maxShapes);
+
+/**
+ * @brief Finds space in the manager for a new Shape
+ * @returns A pointer to a new Shape if success; NULL if error or no more space
+ */
+Shape * shape_new();
 
 /**
  * @brief Allocates memory for a new Rect
@@ -44,9 +59,11 @@ typedef struct shape_s
  * @param y The y position of the top-left of the Rect
  * @param width The width of the Rect
  * @param height The height of the Rect
- * @returns A pointer to the new Rect; NULL if could not allocate memory
+ * @returns A pointer to the new Shape holding a Rect; NULL if could not allocate memory
  */
-Rect * rect_new(float x, float y, float width, float height);
+Shape * rect_new(float x, float y, float width, float height);
+
+void shape_free(Shape *shape);
 
 /**
  * @brief Allocates memory for a new Cube
@@ -58,7 +75,7 @@ Rect * rect_new(float x, float y, float width, float height);
  * @param depth The depth of the Cube
  * @returns A pointer to the new Cube; NULL if could not allocate memory
  */
-Cube * cube_new(float x, float y, float z, float width, float height, float depth);
+Shape * cube_new(float x, float y, float z, float width, float height, float depth);
 
 /**
  * @brief Allocates memory for a new Sphere
@@ -68,7 +85,7 @@ Cube * cube_new(float x, float y, float z, float width, float height, float dept
  * @param radius The radius of the Sphere
  * @returns A pointer to the new Sphere; NULL if could not allocate memory
  */
-Sphere * sphere_new(float x, float y, float z, float radius);
+Shape * sphere_new(float x, float y, float z, float radius);
 
 /**
  * @brief Checks to see if a point is inside of a Rect

@@ -18,6 +18,8 @@
 /* conversion factor for converting from degrees to radians*/
 #define GF3D_DEGTORAD  0.017453292519943295769236907684886
 
+#define DEGTORAD(a) (GF3D_DEGTORAD * ((float)a))
+
 typedef short unsigned int Bool;
 
 #ifndef false

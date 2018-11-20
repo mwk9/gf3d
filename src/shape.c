@@ -1,55 +1,146 @@
 #include "shape.h"
 
-Rect * rect_new(float x, float y, float width, float height)
+typedef struct shapeManager_s
 {
-	Rect *r = NULL;
-	r = (Rect *)malloc(sizeof(Rect));
-	if (!r)
+	Uint64 increment;
+	Shape *shapeList;
+	Uint32 maxShapes;
+}ShapeManager;
+
+static ShapeManager shapeManager = { 0, NULL, 0 };
+
+void shape_system_close()
+{
+	int i = 0;
+
+	if (shapeManager.shapeList != NULL)
 	{
-		slog("Error: could not allocate space for a new Rect");
-		return NULL;
+		for (i = 0; i < shapeManager.maxShapes; i++)
+		{
+			shape_free(&shapeManager.shapeList[i]);
+		}
+		free(shapeManager.shapeList);
 	}
-	memset(r, 0, sizeof(Rect));
-	r->x = x;
-	r->y = y;
-	r->w = width;
-	r->h = height;
-	return r;
+	memset(&shapeManager, 0, sizeof(ShapeManager));
+	slog("Shape system closed.");
 }
 
-Cube * cube_new(float x, float y, float z, float width, float height, float depth)
+void shape_system_init(Uint32 maxShapes)
 {
-	Cube *c = NULL;
-	c = (Cube *)malloc(sizeof(Cube));
-	if (!c)
+	if (maxShapes <= 0)
 	{
-		slog("Error: Could not allocate space for a new Cube.");
-		return NULL;
+		slog("Error: Cannot initialize Shape manager for zero or negative shapes.");
+		return;
 	}
-	memset(c, 0, sizeof(Cube));
-	c->x = x;
-	c->y = y;
-	c->z = z;
-	c->w = width;
-	c->h = height;
-	c->d = depth;
-	return c;
+
+	memset(&shapeManager, 0, sizeof(ShapeManager));
+	shapeManager.shapeList = (Shape *)malloc(sizeof(Shape) * maxShapes);
+	if (!shapeManager.shapeList)
+	{
+		slog("Error: Could not allocate memory for the Shape list.");
+		shape_system_close();
+		return;
+	}
+	memset(shapeManager.shapeList, 0, sizeof(Shape) * maxShapes);
+	shapeManager.maxShapes = maxShapes;
+
+	slog("Shape system initalized.");
+	atexit(shape_system_close);
 }
 
-Sphere * sphere_new(float x, float y, float z, float radius)
+Shape * shape_new()
 {
-	Sphere *s = NULL;
-	s = (Sphere *)malloc(sizeof(Sphere));
+	int i = 0;
+
+	for (i = 0; i < shapeManager.maxShapes; i++)
+	{
+		if (shapeManager.shapeList[i].inUse == 0)
+		{
+			slog("Found a spot for an Shape at index (%i)", i);
+			memset(&shapeManager.shapeList[i], 0, sizeof(Shape));
+			shapeManager.shapeList[i].inUse = 1;
+			return &shapeManager.shapeList[i];
+		}
+	}
+
+	slog("Error: Out of memory for a new Shape.");
+	return NULL;
+}
+
+void shape_free(Shape *shape)
+{
+	if (!shape)
+	{
+		slog("Error: Cannot free a Shape that is NULL.");
+		return;
+	}
+
+	shape->inUse = 0;
+	memset(shape, 0, sizeof(Shape));
+}
+
+Shape * rect_new(float x, float y, float width, float height)
+{
+	Shape *s = NULL;
+	//Rect *r = NULL;
+	//r = (Rect *)malloc(sizeof(Rect));
+	s = shape_new();
+
 	if (!s)
 	{
-		slog("Error: Could not allocate space for a new Sphere.");
+		//slog("Error: could not allocate space for a new Rect");
 		return NULL;
 	}
-	memset(s, 0, sizeof(Sphere));
-	s->x = x;
-	s->y = y;
-	s->z = z;
-	s->r = radius;
+	//memset(r, 0, sizeof(Rect));
+
+	s->type = ST_RECT;
+	s->shape.rect.x = x;
+	s->shape.rect.y = y;
+	s->shape.rect.w = width;
+	s->shape.rect.h = height;
+	return s;
+}
+
+Shape * cube_new(float x, float y, float z, float width, float height, float depth)
+{
+	Shape *s = NULL;
+	s = shape_new();
+	//Cube *c = NULL;
+	//c = (Cube *)malloc(sizeof(Cube));
+	if (!s)
+	{
+		//slog("Error: Could not allocate space for a new Cube.");
+		return NULL;
+	}
+	//memset(c, 0, sizeof(Cube));
+	
+	s->type = ST_CUBE;
+	s->shape.cube.x = x;
+	s->shape.cube.y = y;
+	s->shape.cube.z = z;
+	s->shape.cube.w = width;
+	s->shape.cube.h = height;
+	s->shape.cube.d = depth;
+	return s;
+}
+
+Shape * sphere_new(float x, float y, float z, float radius)
+{
+	Shape *s = NULL;
+	s = shape_new();
+	//Sphere *s = NULL;
+	//s = (Sphere *)malloc(sizeof(Sphere));
+	if (!s)
+	{
+		//slog("Error: Could not allocate space for a new Sphere.");
+		return NULL;
+	}
+	//memset(s, 0, sizeof(Sphere));
+	s->type = ST_SPHERE;
+	s->shape.sphere.x = x;
+	s->shape.sphere.y = y;
+	s->shape.sphere.z = z;
+	s->shape.sphere.r = radius;
 	return s;
 }
 
