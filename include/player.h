@@ -1,6 +1,9 @@
 #ifndef __PLAYER__
 #define __PLAYER__
 
+#include <gf3d_vgraphics.h>
+#include <gf3d_camera.h>
+#include <gf3d_swapchain.h>
 #include "entity.h"
 
 void entity_player_init(Entity *player, void *extraData);

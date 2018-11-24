@@ -22,8 +22,11 @@ typedef struct entity_s
 	//physics
 	Vector3D position;
 	Vector3D rotation;
+	Uint8 canRotate;
+	int lastKeyPressed;
 	Vector3D velocity;
 	Vector3D acceleration;
+	Vector3D scale;
 	Uint8 useGravity;
 	Uint8 testNum;
 	Shape *shape;
@@ -96,5 +99,6 @@ void entity_set_draw_position(Entity *self, Vector3D position);
 void entity_configure_render_pool(Entity *self);
 void entity_draw(Entity *self, Uint32 bufferFrame, VkCommandBuffer commandBuffer);
 void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer);
+void entity_scale(Entity *self, Vector3D scale);
 
 #endif // !__ENTITY__

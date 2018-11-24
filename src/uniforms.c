@@ -84,8 +84,8 @@ UBOManager * ubo_manager_init(Uint32 numEntities, Uint32 numSwapchainImages, int
 	manager->numUBOs = numEntities * numSwapchainImages;
 	manager->alignedSize = uniforms_aligned_size();
 	slog("sizeof UBO is (%i), aligned size is (%i)", sizeof(UniformBufferObject), manager->alignedSize);
-	manager->currentUBOStates = (UniformBufferObject *)malloc(manager->alignedSize * manager->numEntities * manager->numSwapchainImages);
-	memset(manager->currentUBOStates, 0, manager->alignedSize * manager->numEntities * manager->numSwapchainImages);
+	manager->currentUBOStates = (UniformBufferObject *)malloc(manager->alignedSize * (manager->numEntities) * manager->numSwapchainImages);
+	memset(manager->currentUBOStates, 0, manager->alignedSize * (manager->numEntities) * manager->numSwapchainImages);
 	//manager->currentUBOStates = (UniformBufferObject *)malloc(uniforms_size() * manager->numEntities);
 	//memset(manager->currentUBOStates, 0, uniforms_size() * manager->numEntities);
 
@@ -124,11 +124,12 @@ Uint32 uniforms_get_reference_offset(UBOManager *self, Uint32 entityID, Uint32 s
 
 UniformBufferObject *uniforms_get_local_reference(UBOManager *self, Uint32 entityID, Uint32 swapchainFrameID)
 {
-	void *obj = (void *)self->currentUBOStates;
+	char *obj = (char *)self->currentUBOStates;
 	Uint32 offset = entityID + (self->numEntities * swapchainFrameID);
 	//return &obj[entityID];
 	//return self->currentUBOStates + entityID;
-	return (UniformBufferObject *)(self->currentUBOStates + offset);
+	//return self->currentUBOStates + 1;
+	return (UniformBufferObject *)(obj + (offset * self->alignedSize));
 }
 
 Uint32 uniforms_size()

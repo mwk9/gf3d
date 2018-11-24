@@ -135,7 +135,7 @@ void gf3d_camera_turn(Camera *camera, float deltaPitch, float deltaYaw, float de
 {
 	gf3d_camera_set_pitch(camera, gf3d_camera_get_pitch(camera) + deltaPitch);
 	gf3d_camera_set_yaw(camera, gf3d_camera_get_yaw(camera) + deltaYaw);
-	gf3d_camera_set_roll(camera, gf3d_camera_get_roll(camera) + deltaRoll);
+	//gf3d_camera_set_roll(camera, gf3d_camera_get_roll(camera) + deltaRoll);
 }
 
 void gf3d_camera_move(Camera *camera, float deltaForwardScale, float deltaRightScale, float deltaUpScale)
@@ -197,16 +197,23 @@ void gf3d_camera_update(Camera *camera)
 {
 	static Vector3D target;
 
+	if (!camera)
+	{
+		return;
+	}
+
 	gf3d_camera_vector_front_update(camera);
 	gf3d_camera_vector_right_update(camera);
 	gf3d_camera_vector_up_update(camera);
 	
 	Vector3D_add(&target, camera->position, &camera->front);
-	//mat4x4_look_at(camera->ubo->view, camera->position, &target, &camera->up);
-	gf3d_matrix_lookat(camera->ubo->view, *camera->position, target, camera->up);
-	//mat4x4_perspective(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
+	//gf3d_matrix_lookat(camera->ubo->view, *camera->position, target, camera->up);
 	gf3d_matrix_perspective_vec3(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
 	camera->ubo->proj[0][0] *= -1.0f;
+
+	//gf3d_matrix_view(camera->view, camera->position, camera->target, vector3d(0, 0, 1));
+	//gf3d_matrix_perspective(camera->perspective, camera->fieldOfView, camera->width / camera->height, camera->nearPlane, camera->farPlane);
+	//camera->perspective[1][1] *= -1.0f;
 }
 
 Camera *gf3d_camera_init(int renderWidth, int renderHeight, Vector3D *position, Vector3D *rotation)

@@ -96,7 +96,9 @@ Entity *entity_new()
 			entityManager.entityList[i].id = i;
 			entityManager.entityList[i].inUse = 1;
 			//entityManager.entityList[i].model = (Model *)malloc(sizeof(Model));
+			entityManager.entityList[i].canRotate = 1;
 			entityManager.entityList[i].ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), i, 0);
+			entityManager.entityList[i].scale = vector3d(1.0f, 1.0f, 1.0f);
 			return &entityManager.entityList[i];
 		}
 	}
@@ -116,6 +118,7 @@ Entity *entity_load(char *modelFilename)
 	}
 
 	e->model = gf3d_model_load(modelFilename);
+	e->shape = sphere_new(e->position.x, e->position.y, e->position.z, 10.0f);
 	//entity_configure_render_pool(e);
 	//e->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), (Uint32)e->id);
 
@@ -173,32 +176,65 @@ void entity_update(Entity *self)
 	//self->position.y -= 0.1;
 
 	//gf3d_matrix_identity(self->ubo->model);
-	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
-	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
-	gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
+	if (self->rotation.x != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
+		self->rotation.x = 0.0f;
+	}
+	if (self->rotation.y != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
+		self->rotation.y = 0.0f;
+	}
+	if (self->rotation.z != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
+		self->rotation.z = 0.0f;
+	}
+
+	//update position
 	self->ubo->model[3][0] = self->position.x;
 	self->ubo->model[3][1] = self->position.y;
 	self->ubo->model[3][2] = self->position.z;
+
+	//update scale
+	//self->ubo->model[0][0] = self->scale.x;
+	//self->ubo->model[1][1] = self->scale.y;
+	//self->ubo->model[2][2] = self->scale.z;
+
 	/*if (self->id == 0)
 	{
 		if (self->testNum == 0)
 		{
-			self->ubo->model[2][2] -= 0.05f;
-			if (self->ubo->model[2][2] <= 0.01)
+			self->ubo->model[0][0] -= 0.05f;
+			if (self->ubo->model[0][0] <= 0.01)
 			{
 				self->testNum = 1;
 			}
 		}
 		else if (self->testNum == 1)
 		{
-			self->ubo->model[2][2] += 0.05f;
-			if (self->ubo->model[2][2] >= 1)
+			self->ubo->model[0][0] += 0.05f;
+			if (self->ubo->model[0][0] >= 1)
 			{
 				self->testNum = 0;
 			}
 		}
 	}*/
 	//gravity and physics stuff goes here
+	if (self->useGravity)
+	{
+		if (self->acceleration.z > -0.5f)
+		{
+			self->acceleration.z -= 0.001f;
+		}
+	}
+	vector3d_add(self->velocity, self->velocity, self->acceleration);
+	vector3d_add(self->position, self->velocity, self->acceleration);
+	self->shape->shape.sphere.x = self->position.x;
+	self->shape->shape.sphere.y = self->position.y;
+	self->shape->shape.sphere.z = self->position.z;
+	//if ()
 }
 
 void entity_update_all()
@@ -302,4 +338,21 @@ void entity_draw_all(Uint32 bufferFrame, VkCommandBuffer commandBuffer)
 	}
 
 	//entity_render_end_all();
+}
+
+void entity_scale(Entity *self, Vector3D scale)
+{
+	if (!self)
+	{
+		slog("Error: Attempting to scale a NULL Entity.");
+		return;
+	}
+
+	self->scale.x = scale.x;
+	self->scale.y = scale.y;
+	self->scale.z = scale.z;
+
+	self->ubo->model[0][0] = self->scale.x;
+	self->ubo->model[1][1] = self->scale.y;
+	self->ubo->model[2][2] = self->scale.z;
 }

@@ -48,9 +48,13 @@ int main(int argc,char *argv[])
     slog("gf3d main loop begin");
     //model = gf3d_model_load("bird_maya");
     //model2 = gf3d_model_load("cube");
-	test_ent = entity_load("cube");
+	test_ent = entity_load("pigeon");
+	entity_player_init(test_ent, NULL);
+
 	test_ent->position.x = 0.0f;
 	test_ent->position.z = 0.0f;
+	test_ent->useGravity = 1;
+	entity_scale(test_ent, vector3d(0.1f, 0.1f, 0.1f));
 	//test_ent->rotation.x = 1.0f;
 	//gf3d_matrix_rotate(test_ent->ubo->model, test_ent->ubo->model, test_ent->rotation.x, vector3d(1, 0, 0));
 	//test_ent->rotation.x = 0.0f;
@@ -63,19 +67,15 @@ int main(int argc,char *argv[])
 	//test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
 	//test_ent2 = entity_load("cube");
 
-	dootdoot = sound_load("audio/rift.ogg", 5.0f, -1);
+	dootdoot = sound_load("audio/rift.ogg", 15.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
-
-	s1 = sphere_new(0, 0, 0, 5);
-	s2 = sphere_new(0, 0, 1, 3);
-	slog("rect (%i), cube (%i), sphere (%i), max size (%i)", sizeof(Rect), sizeof(Cube), sizeof(Sphere), sizeof_max(Rect, Cube, Sphere));
 
     while(!done)
     {
 		if (test_ent)
 		{
-			//test_ent->position.y -= 0.01;
-			test_ent->rotation.z = 0.05f;
+			//test_ent->position.y -= 1;
+			//test_ent->rotation.z = 0.05f;
 		}
 		if (test_ent2)
 		{
@@ -119,11 +119,13 @@ int main(int argc,char *argv[])
 		gf3d_command_rendering_end(commandBuffer);
 		gf3d_vgraphics_render_end(bufferFrame, keys, direction);
 		
-		if (sphere_in_sphere(&s1->shape.sphere, &s2->shape.sphere))
+		if (test_ent && test_ent2)
 		{
-			slog("collision!");
+			if (sphere_in_sphere(&test_ent->shape->shape.sphere, &test_ent2->shape->shape.sphere))
+			{
+				slog("collision!");
+			}
 		}
-		s2->shape.sphere.x -= 0.1f;
 
 		if (keys[SDL_SCANCODE_B])
 		{

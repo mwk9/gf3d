@@ -377,6 +377,7 @@ VkDeviceSize gf3d_vgraphics_get_dynamic_uniform_buffer_size()
 {
     int i;
     Uint32 buffercount = gf3d_swapchain_get_swap_image_count();
+	//buffercount = max num of buffers
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     gf3d_vgraphics.uniformBuffers = (VkBuffer*)gf3d_allocate_array(sizeof(VkBuffer),buffercount);
