@@ -1,3 +1,5 @@
 name:	Player
-model:	pidgeon
+model:	pigeon
+shape:	cube
+1.0 1.0 1.0
 ~

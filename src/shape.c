@@ -44,7 +44,7 @@ void shape_system_init(Uint32 maxShapes)
 	memset(shapeManager.shapeList, 0, sizeof(Shape) * maxShapes);
 	shapeManager.maxShapes = maxShapes;
 
-	slog("Shape system initalized.");
+	slog("Shape system initialized.");
 	atexit(shape_system_close);
 }
 

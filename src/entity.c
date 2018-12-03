@@ -214,6 +214,33 @@ Entity *entity_load_from_file(char *filename)
 			slog("name is (%s)", e->name);
 			continue;
 		}
+		if (strcmp(buffer, "model:") == 0)
+		{
+			sscanf(fileContents, " %s\n%n", buffer, &n);
+			fileContents += n;
+			e->model = gf3d_model_load(buffer);
+			continue;
+		}
+		if (strcmp(buffer, "shape:") == 0)
+		{
+			sscanf(fileContents, " %s\n%n", buffer, &n);
+			fileContents += n;
+			if (strcmp(buffer, "cube") == 0)
+			{
+				float x, y, z;
+				sscanf(fileContents, " %f %f %f\n%n", &x, &y, &z, &n);
+				fileContents += n;
+				e->shape = cube_new(e->position.x, e->position.y, e->position.z, x, y, z);
+			}
+			else if (strcmp(buffer, "sphere") == 0)
+			{
+				float r;
+				sscanf(fileContents, " %f\n%n", &r, &n);
+				fileContents += n;
+				e->shape = sphere_new(e->position.x, e->position.y, e->position.z, r);
+			}
+			continue;
+		}
 	}
 
 	return e;
