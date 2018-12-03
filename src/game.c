@@ -23,8 +23,9 @@ int main(int argc,char *argv[])
     VkCommandBuffer commandBuffer;
     //Model *model;
     //Model *model2;
-	Entity *test_ent;
+	Entity *test_ent = NULL;
 	Entity *test_ent2 = NULL;
+	Entity *floor = NULL;
 	float direction = 0.0f;
 	Sound *dootdoot = NULL;
 	Shape *s1 = NULL;
@@ -48,16 +49,24 @@ int main(int argc,char *argv[])
     slog("gf3d main loop begin");
     //model = gf3d_model_load("bird_maya");
     //model2 = gf3d_model_load("cube");
-	test_ent = entity_load("pigeon");
-	entity_player_init(test_ent, NULL);
-
-	test_ent->position.x = 0.0f;
-	test_ent->position.z = 0.0f;
-	test_ent->useGravity = 1;
-	entity_scale(test_ent, vector3d(0.1f, 0.1f, 0.1f));
+	//test_ent = entity_load("pigeon", -1);
+	//test_ent = entity_new();
+	test_ent = entity_player_init(test_ent, NULL);
+	entity_load_from_file("def/test.txt");
+	//test_ent->position.x = 0.0f;
+	//test_ent->position.z = 0.0f;
+	//test_ent->useGravity = 1;
+	//entity_scale(test_ent, vector3d(0.1f, 0.1f, 0.1f));
+	//test_ent->shape = cube_new(test_ent->position.x, test_ent->position.y, test_ent->position.z, 3.0f, 3.0f, 3.0f);
 	//test_ent->rotation.x = 1.0f;
 	//gf3d_matrix_rotate(test_ent->ubo->model, test_ent->ubo->model, test_ent->rotation.x, vector3d(1, 0, 0));
 	//test_ent->rotation.x = 0.0f;
+
+	floor = entity_load("grass", 100);
+	floor->isStatic = 1;
+	floor->position.z = -10.0f;
+	entity_scale(floor, vector3d(100.0f, 100.0f, 4.0f));
+	floor->shape = cube_new(floor->position.x - 50.0f, floor->position.y - 50.0f, floor->position.z + 1.5f, 100.0f, 100.0f, 3.0f);
 
 	//test_ent2 = entity_load("agumon");
 	//test_ent2->position.x = -1.0f;
@@ -119,18 +128,41 @@ int main(int argc,char *argv[])
 		gf3d_command_rendering_end(commandBuffer);
 		gf3d_vgraphics_render_end(bufferFrame, keys, direction);
 		
-		if (test_ent && test_ent2)
+		/*if (test_ent && floor)
 		{
-			if (sphere_in_sphere(&test_ent->shape->shape.sphere, &test_ent2->shape->shape.sphere))
+			if (cube_in_cube(&test_ent->shape->shape.cube, &floor->shape->shape.cube))
 			{
-				slog("collision!");
+				//slog("collision!");
+				test_ent->acceleration = vector3d(0.0f, 0.0f, 0.0f);
+				test_ent->useGravity = 0;
+			}
+			else
+			{
+				test_ent->useGravity = 1;
 			}
 		}
+		if (test_ent2 && floor)
+		{
+			if (cube_in_cube(&test_ent2->shape->shape.cube, &floor->shape->shape.cube))
+			{
+				//slog("collision!");
+				test_ent2->acceleration = vector3d(0.0f, 0.0f, 0.0f);
+				test_ent2->useGravity = 0;
+			}
+			else
+			{
+				test_ent2->useGravity = 1;
+			}
+		}*/
+		TEST_all_entities_collide_with_floor(floor);
 
 		if (keys[SDL_SCANCODE_B])
 		{
-			test_ent2 = entity_load("agumon");
+			test_ent2 = entity_load("agumon", -1);
+			test_ent2->useGravity = 1;
+			test_ent2->shape = cube_new(test_ent2->position.x, test_ent2->position.y, test_ent2->position.z, 3.0f, 3.0f, 3.0f);
 			//entity_set_draw_position(test_ent, vector3d(0.0f,0.0f,0.0f));
+			entity_load("cube", -1)->velocity.x = rand() % 7;
 		}
 		if (keys[SDL_SCANCODE_N])
 		{

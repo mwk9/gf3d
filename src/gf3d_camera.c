@@ -206,9 +206,12 @@ void gf3d_camera_update(Camera *camera)
 	gf3d_camera_vector_right_update(camera);
 	gf3d_camera_vector_up_update(camera);
 	
+
 	Vector3D_add(&target, camera->position, &camera->front);
 	//gf3d_matrix_lookat(camera->ubo->view, *camera->position, target, camera->up);
-	gf3d_matrix_perspective_vec3(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
+	gf3d_matrix_view(camera->ubo->view, *camera->position, target, camera->up);
+	//gf3d_matrix_perspective_vec3(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
+	gf3d_matrix_perspective(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
 	camera->ubo->proj[0][0] *= -1.0f;
 
 	//gf3d_matrix_view(camera->view, camera->position, camera->target, vector3d(0, 0, 1));
@@ -231,16 +234,29 @@ Camera *gf3d_camera_init(int renderWidth, int renderHeight, Vector3D *position, 
 	memset(camera, 0, sizeof(Camera));
 
 	camera->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), 0, 0);
+	
+	//up
 	memcpy(&camera->up, &defaultUp, sizeof(Vector3D));
 	memcpy(&camera->worldUp, &defaultUp, sizeof(Vector3D));
+
+	//internal position
 	camera->position = position;
 	camera->rotation = rotation;
+
+	//front
 	memcpy(&camera->front, &defaultFront, sizeof(Vector3D));
+
 	camera->width = renderWidth;
 	camera->height = renderHeight;
 	camera->fieldOfView = 50.0f;
 	camera->nearPlane = 0.01f;
 	camera->farPlane = 100.0f;
+
+	//gf3d_matrix_identity(camera->ubo->view);
+	//gf3d_matrix_identity(camera->ubo->proj);
+
+	//gf3d_matrix_view(camera->ubo->view, *camera->position, vector3d(0, 0, 0), camera->up);
+	//gf3d_matrix_perspective(camera->ubo->proj, camera->fieldOfView, gf3d_camera_aspect_ratio(camera), camera->nearPlane, camera->farPlane);
 
 	return camera;
 }

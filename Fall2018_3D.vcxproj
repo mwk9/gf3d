@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\ds_octree.h" />
     <ClInclude Include="include\entity.h" />
     <ClInclude Include="include\gf3d_camera.h" />
     <ClInclude Include="include\gf3d_commands.h" />
@@ -111,6 +112,7 @@
     <ClInclude Include="include\uniforms.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ds_octree.c" />
     <ClCompile Include="src\entity.c" />
     <ClCompile Include="src\game.c" />
     <ClCompile Include="src\gf3d_camera.c" />

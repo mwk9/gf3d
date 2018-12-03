@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "ds_octree.h"
 #include "gf3d_vgraphics.h"
 
 typedef struct entityManager_s
@@ -107,20 +108,113 @@ Entity *entity_new()
 	return NULL;
 }
 
-Entity *entity_load(char *modelFilename)
+Entity *entity_new_at_id(Uint32 id)
+{
+	if (id < 0 || id >= MAX_ENTITY_NUM)
+	{
+		slog("Error: Trying to create an Entity with an invalid ID... range is from 0-%i.", MAX_ENTITY_NUM);
+		return NULL;
+	}
+
+	if (entityManager.entityList[id].inUse == 0)
+	{
+		slog("Found a spot for an entity at index (%i)", id);
+		memset(&entityManager.entityList[id], 0, sizeof(Entity));
+		entityManager.entityList[id].id = id;
+		entityManager.entityList[id].inUse = 1;
+		//entityManager.entityList[i].model = (Model *)malloc(sizeof(Model));
+		entityManager.entityList[id].canRotate = 1;
+		entityManager.entityList[id].ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), id, 0);
+		entityManager.entityList[id].scale = vector3d(1.0f, 1.0f, 1.0f);
+		return &entityManager.entityList[id];
+	}
+
+	slog("Error: Entity with ID (%i) is already in use.", id);
+	return NULL;
+}
+
+Entity *entity_load(char *modelFilename, int id)
 {
 	Entity *e;
 
-	e = entity_new();
+	if (id < 0)
+	{
+		e = entity_new();
+	}
+	else
+	{
+		e = entity_new_at_id(id);
+	}
+
 	if (!e)
 	{
 		return NULL;
 	}
 
 	e->model = gf3d_model_load(modelFilename);
-	e->shape = sphere_new(e->position.x, e->position.y, e->position.z, 10.0f);
+	e->shape = cube_new(e->position.x, e->position.y, e->position.z, 1.0f, 1.0f, 1.0f);
+	memcpy(e->name, modelFilename, sizeof(TextLine));
 	//entity_configure_render_pool(e);
 	//e->ubo = uniforms_get_local_reference(gf3d_vgraphics_get_uniform_buffer_manager(), (Uint32)e->id);
+
+	return e;
+}
+
+Entity *entity_load_from_file(char *filename)
+{
+	Entity *e = entity_new();
+	char buffer[512];
+	char holder[512];
+	char c;
+	int i = 0, n = 0;
+	FILE *file = NULL;
+	char *fileContents = "";
+	size_t filesize = 0;
+
+	if (!filename)
+	{
+		slog("Error: Trying to load an Entity from a NULL filename.");
+		return NULL;
+	}
+	if (!e)
+	{
+		return NULL;
+	}
+	e->shape = cube_new(e->position.x, e->position.y, e->position.z, 1.0f, 1.0f, 1.0f);
+
+	file = fopen(filename, "r");
+	fseek(file, 0L, SEEK_END);
+	filesize = ftell(file);
+	rewind(file);
+	fileContents = (char *)malloc(sizeof(char) * filesize);
+	memset(fileContents, 0, sizeof(char) * filesize);
+
+	c = fgetc(file);
+	while (c != EOF)
+	{
+		fileContents[i++] = c;
+		c = fgetc(file);
+	}
+	fileContents[i] = '\0';
+	//slog("File contains:\n%s", fileContents);
+
+	while (sscanf(fileContents, " %s\n%n", buffer, &n) == 1)
+	{
+		if (buffer[0] == '~')
+		{
+			//'~' denotes end of important info: text afterwards is ignored
+			break;
+		}
+		fileContents += n;
+		if (strcmp(buffer, "name:") == 0)
+		{
+			sscanf(fileContents, " %s\n%n", buffer, &n);
+			fileContents += n;
+			strncpy(e->name, buffer, sizeof(TextLine));
+			slog("name is (%s)", e->name);
+			continue;
+		}
+	}
 
 	return e;
 }
@@ -173,24 +267,8 @@ void entity_update(Entity *self)
 		self->update(self);
 	}
 
-	//self->position.y -= 0.1;
 
 	//gf3d_matrix_identity(self->ubo->model);
-	if (self->rotation.x != 0.0f)
-	{
-		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
-		self->rotation.x = 0.0f;
-	}
-	if (self->rotation.y != 0.0f)
-	{
-		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
-		self->rotation.y = 0.0f;
-	}
-	if (self->rotation.z != 0.0f)
-	{
-		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
-		self->rotation.z = 0.0f;
-	}
 
 	//update position
 	self->ubo->model[3][0] = self->position.x;
@@ -221,19 +299,42 @@ void entity_update(Entity *self)
 			}
 		}
 	}*/
-	//gravity and physics stuff goes here
-	if (self->useGravity)
+	
+	if (!self->isStatic)
 	{
-		if (self->acceleration.z > -0.5f)
+		if (self->rotation.x != 0.0f)
 		{
-			self->acceleration.z -= 0.001f;
+			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
+			self->rotation.x = 0.0f;
+		}
+		if (self->rotation.y != 0.0f)
+		{
+			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
+			self->rotation.y = 0.0f;
+		}
+		if (self->rotation.z != 0.0f)
+		{
+			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
+			self->rotation.z = 0.0f;
+		}
+
+		//gravity and physics stuff goes here
+		if (self->useGravity)
+		{
+			if (self->acceleration.z > -0.5f)
+			{
+				self->acceleration.z -= 0.001f;
+			}
+		}
+		vector3d_add(self->velocity, self->velocity, self->acceleration);
+		vector3d_add(self->position, self->velocity, self->acceleration);
+		if (self->shape)
+		{
+			self->shape->shape.cube.x = self->position.x;
+			self->shape->shape.cube.y = self->position.y;
+			self->shape->shape.cube.z = self->position.z;
 		}
 	}
-	vector3d_add(self->velocity, self->velocity, self->acceleration);
-	vector3d_add(self->position, self->velocity, self->acceleration);
-	self->shape->shape.sphere.x = self->position.x;
-	self->shape->shape.sphere.y = self->position.y;
-	self->shape->shape.sphere.z = self->position.z;
 	//if ()
 }
 
@@ -355,4 +456,50 @@ void entity_scale(Entity *self, Vector3D scale)
 	self->ubo->model[0][0] = self->scale.x;
 	self->ubo->model[1][1] = self->scale.y;
 	self->ubo->model[2][2] = self->scale.z;
+}
+
+Entity *entity_get_by_id(Uint32 id)
+{
+	if (id < 0 || id >= MAX_ENTITY_NUM)
+	{
+		slog("Error: Requesting an Entity that is out of range.");
+		return NULL;
+	}
+
+	return &entityManager.entityList[id];
+}
+
+void TEST_entity_collides_with_floor(Entity *self, Entity *floor)
+{
+	if (!self || !floor)
+	{
+		return;
+	}
+	if (self == floor)
+	{
+		return;
+	}
+
+	if (cube_in_cube(&self->shape->shape.cube, &floor->shape->shape.cube))
+	{
+		self->acceleration = vector3d(0.0f, 0.0f, 0.0f);
+		self->useGravity = 0;
+	}
+	else
+	{
+		self->useGravity = 1;
+	}
+}
+
+void TEST_all_entities_collide_with_floor(Entity *floor)
+{
+	int i = 0;
+
+	for (i = 0; i < entityManager.maxEntities; i++)
+	{
+		if (entityManager.entityList[i].inUse)
+		{
+			TEST_entity_collides_with_floor(&entityManager.entityList[i], floor);
+		}
+	}
 }
