@@ -11,6 +11,7 @@
 #include "gf3d_texture.h"
 #include "entity.h"
 #include "player.h"
+#include "moving_platform.h"
 //#include "shape.h"
 #include "uniforms.h"
 #include "sound.h"
@@ -67,6 +68,8 @@ int main(int argc,char *argv[])
 	floor->position.z = -10.0f;
 	entity_scale(floor, vector3d(100.0f, 100.0f, 4.0f));
 	floor->shape = cube_new(floor->position.x - 50.0f, floor->position.y - 50.0f, floor->position.z + 1.5f, 100.0f, 100.0f, 3.0f);
+
+	entity_moving_platform_init(NULL);
 
 	//test_ent2 = entity_load("agumon");
 	//test_ent2->position.x = -1.0f;

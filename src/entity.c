@@ -241,6 +241,20 @@ Entity *entity_load_from_file(char *filename)
 			}
 			continue;
 		}
+		if (strcmp(buffer, "speed:") == 0)
+		{
+			float s;
+			sscanf(fileContents, " %f\n%n", &s, &n);
+			fileContents += n;
+			e->speed = s;
+		}
+		if (strcmp(buffer, "useGravity:") == 0)
+		{
+			int ug;
+			sscanf(fileContents, " %i\n%n", &ug, &n);
+			fileContents += n;
+			e->useGravity = ug;
+		}
 	}
 
 	return e;
