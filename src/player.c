@@ -86,8 +86,8 @@ void entity_player_calculate_rotation(Entity *player)
 		player->rotation.y = 0.0f;
 	}*/
 
-	//vector3d_copy(player->rotation, vector3d(yaw, pitch, roll));
-	gf3d_camera_turn(camera, pitch, yaw, roll);
+	vector3d_copy(player->rotation, vector3d(yaw, pitch, roll));
+	//gf3d_camera_turn(camera, 0.0f, 0.0f, roll);
 }
 
 
@@ -137,7 +137,7 @@ void entity_player_update(Entity *player, void *extraData)
 	entity_player_calculate_position(player);
 	entity_player_calculate_rotation(player);
 
-	gf3d_camera_update(camera);
+	//gf3d_camera_update(camera);
 }
 
 void entity_player_free(Entity *player, void *extraData)

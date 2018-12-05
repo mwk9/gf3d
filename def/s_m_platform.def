@@ -1,5 +1,5 @@
 name:		MovingPlatform
-model:		cube
+model:		bread
 shape:		cube
 1.0 1.0 1.0
 speed:		1.0

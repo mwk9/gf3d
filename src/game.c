@@ -15,6 +15,7 @@
 //#include "shape.h"
 #include "uniforms.h"
 #include "sound.h"
+#include "linked_list.h"
 
 int main(int argc,char *argv[])
 {
@@ -31,6 +32,21 @@ int main(int argc,char *argv[])
 	Sound *dootdoot = NULL;
 	Shape *s1 = NULL;
 	Shape *s2 = NULL;
+
+	//linked list testing
+	LinkedList *list = ll_new(sizeof(int));
+
+	ll_insert(list, 1, sizeof(int));
+	ll_insert(list, 2, sizeof(int));
+	ll_insert(list, 3, sizeof(int));
+	ll_insert(list, 4, sizeof(int));
+
+	while (list->head != NULL)
+	{
+		slog("data (%i)", (int)ll_remove_head(list));
+	}
+
+	ll_delete(list);
     
     init_logger("gf3d.log");    
     slog("gf3d begin");
