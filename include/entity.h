@@ -9,6 +9,7 @@
 #include "gf3d_matrix.h"
 #include "gf3d_model.h"
 #include "shape.h"
+#include "multitree.h"
 #include "simple_logger.h"
 
 #define MAX_CHARS 32

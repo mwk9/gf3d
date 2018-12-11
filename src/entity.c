@@ -10,6 +10,8 @@ typedef struct entityManager_s
 }EntityManager;
 
 static EntityManager entityManager = { 0, NULL, 0 };
+static MultitreeNode *collisionMap = NULL;
+static int numCycles = 0;
 
 void entity_system_close()
 {
@@ -25,6 +27,25 @@ void entity_system_close()
 	}
 	memset(&entityManager, 0, sizeof(entityManager));
 	slog("Entity system closed.");
+}
+
+void entity_system_setup_collision_map()
+{
+	int i = 0, j = 0, k = 0;
+
+	collisionMap = multitree_node_init(MAX_MULTITREE_NODE_CHILDREN, DEFAULT_NEGATIVE_OFFSET, 0);
+	for (i = 0; i < MAX_MULTITREE_NODE_CHILDREN; i++)
+	{
+		collisionMap->children[i] = multitree_node_init(MAX_MULTITREE_NODE_CHILDREN, DEFAULT_NEGATIVE_OFFSET, i);
+		for (j = 0; j < MAX_MULTITREE_NODE_CHILDREN; j++)
+		{
+			collisionMap->children[i]->children[j] = multitree_node_init(MAX_MULTITREE_NODE_CHILDREN, DEFAULT_NEGATIVE_OFFSET, j);
+			for (k = 0; k < MAX_MULTITREE_NODE_CHILDREN; k++)
+			{
+				collisionMap->children[i]->children[j]->children[k] = multitree_node_init(MAX_MULTITREE_NODE_CHILDREN, DEFAULT_NEGATIVE_OFFSET, k);
+			}
+		}
+	}
 }
 
 void entity_system_init(Uint32 maxEntities)
@@ -52,6 +73,8 @@ void entity_system_init(Uint32 maxEntities)
 	{
 		entityManager.entityList[i].id = i;
 	}
+
+	entity_system_setup_collision_map();
 
 	slog("Entity system initialized.");
 	atexit(entity_system_close);
@@ -376,7 +399,18 @@ void entity_update(Entity *self)
 			self->shape->shape.cube.z = self->position.z;
 		}
 	}
-	//if ()
+	
+	if (numCycles == 0)
+	{
+		multitree_insert_data_into_xyz_node(
+			collisionMap,
+			(int)self->position.x / 100 + DEFAULT_NEGATIVE_OFFSET,
+			(int)self->position.y / 100 + DEFAULT_NEGATIVE_OFFSET,
+			(int)self->position.z / 100 + DEFAULT_NEGATIVE_OFFSET,
+			self,
+			sizeof(Entity)
+		);
+	}
 }
 
 void entity_update_all()
@@ -390,6 +424,8 @@ void entity_update_all()
 			entity_update(&entityManager.entityList[i]);
 		}
 	}
+
+	numCycles++;
 }
 
 /*void entity_set_draw_position(Entity *self, Vector3D position)

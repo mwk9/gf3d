@@ -96,13 +96,13 @@
     <ClInclude Include="include\moving_platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\linked_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\multitree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -182,10 +182,13 @@
     <ClCompile Include="src\moving_platform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\map.c">
+    <ClCompile Include="src\linked_list.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\linked_list.c">
+    <ClCompile Include="src\hashmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\multitree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
