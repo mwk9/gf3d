@@ -72,6 +72,16 @@ Sound *sound_load(char *filepath, float volume, int defaultChannel);
 void sound_play(Sound *sound, int numLoops, float volume, int channel, int group);
 
 /**
+ * @brief Players a specified Sound that has already been loaded into memory
+ * @param filepath The filepath of the Sound to play
+ * @param numLoops The number of times to play the specified sound, -1 to loop infinately
+ * @param volume The volume of the audio file, 0 or less to use the default audio level
+ * @param channel The channel to play the audio on, -1 to find a channel automatically
+ * @param group Currently unused
+ */
+void sound_play_get_by_filepath(char *filepath, int numLoops, float volume, int channel, int group);
+
+/**
  * @brief Adjusts the volume of a Sound
  * @param sound The Sound structure to alter
  * @param volume The new volume amount for the specified Sound

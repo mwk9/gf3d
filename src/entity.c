@@ -264,6 +264,22 @@ Entity *entity_load_from_file(char *filename)
 			}
 			continue;
 		}
+		if (strcmp(buffer, "position:") == 0)
+		{
+			float x, y, z;
+			sscanf(fileContents, " %f %f %f\n%n", &x, &y, &z, &n);
+			fileContents += n;
+			e->position = vector3d(x, y, z);
+			continue;
+		}
+		if (strcmp(buffer, "scale:") == 0)
+		{
+			float x, y, z;
+			sscanf(fileContents, " %f %f %f\n%n", &x, &y, &z, &n);
+			fileContents += n;
+			entity_scale(e, vector3d(x, y, z));
+			continue;
+		}
 		if (strcmp(buffer, "speed:") == 0)
 		{
 			float s;
