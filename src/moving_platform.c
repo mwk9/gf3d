@@ -43,7 +43,33 @@ Entity *entity_collectable_bread_init(void *extraData)
 
 	bread = entity_load_from_file("def/collectable.def");
 	bread->isStatic = 1;
+	bread->useGravity = 0;
 	bread->update = (void(*)(Entity *))entity_collectable_bread_update;
+}
+
+void entity_collectable_bread_collide_with_player(Entity *self, Uint32 playerID)
+{
+	Entity *player = NULL;
+
+	if (!self)
+	{
+		return;
+	}
+	if (playerID < 0 || playerID >= MAX_ENTITY_NUM)
+	{
+		return;
+	}
+
+	player = entity_get_at_location(playerID);
+	if (!player)
+	{
+		return;
+	}
+
+	if (cube_in_cube(&self->shape->shape.cube, &player->shape->shape.cube))
+	{
+		slog("Player touched collectable!");
+	}
 }
 
 void entity_collectable_bread_update(Entity *self)
@@ -53,5 +79,12 @@ void entity_collectable_bread_update(Entity *self)
 		return;
 	}
 
-	self->rotation.x = 0.5f;
+	self->rotation.z = 0.025f;
+	if (self->shape)
+	{
+		self->shape->shape.cube.x = self->position.x;
+		self->shape->shape.cube.y = self->position.y;
+		self->shape->shape.cube.z = self->position.z;
+	}
+	entity_collectable_bread_collide_with_player(self, 50);
 }

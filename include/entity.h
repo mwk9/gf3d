@@ -78,10 +78,15 @@ Entity *entity_new_at_id(Uint32 id);
  * @brief Creates a new entity with specified attributes
  * @param modelFilename The filename of the model to assign to the entity
  * @param id Specifies if a Entity should be loaded with a specfic ID; -1 to use next available address
- * @returns A pointer to the new entity
+ * @returns A pointer to the new entity if successful; NULL if error
  */
 Entity *entity_load(char *modelFilename, int id);
 
+/**
+ * @brief Creates a new entity with specified attributes from a defintion file
+ * @param filename The name of the text definition file to load the Entity from
+ * @returns A pointer to the new entity if successful; NULL if error
+ */
 Entity *entity_load_from_file(char *filename);
 
 /**
@@ -105,6 +110,13 @@ void entity_update(Entity *self);
  * @brief Runs entity_update on every existing entity
  */
 void entity_update_all();
+
+/**
+* @brief Gets the reference to an Entity at a specifc location in the Entity Manager
+* @param id The ID of the Entity to search for
+* @returns A pointer to the requested Entity if it is in use, NULL if it is not in use
+*/
+Entity *entity_get_at_location(Uint32 id);
 
 /**
  * TODO: comment this function

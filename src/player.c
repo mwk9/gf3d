@@ -37,10 +37,10 @@ void entity_player_calculate_position(Entity *player)
 	};
 
 	vector3d_scale(deltaMovement, deltaMovement, player->speed);
-	//Vector3D_add(&player->position, &player->position, &deltaMovement);
+	Vector3D_add(&player->position, &player->position, &deltaMovement);
 	Vector3D_add(&player->velocity, &player->velocity, &deltaMovement);
 	//Vector3D_add(camera->position, &player->velocity, &deltaMovement);
-	gf3d_camera_move(camera, deltaMovement.x, deltaMovement.y, deltaMovement.z);
+	//gf3d_camera_move(camera, deltaMovement.x, deltaMovement.y, deltaMovement.z);
 }
 
 void entity_player_calculate_rotation(Entity *player)
@@ -105,7 +105,7 @@ Entity *entity_player_init(Entity *player, void *extraData)
 {
 	Vector3D offset = vector3d(0.0f, -10.0f, 0.0f);
 
-	player = entity_load("pigeon", -1);
+	player = entity_load("pigeon", 50);
 	player->update = (void (*)(Entity *))entity_player_update;
 	player->free = (void (*)(Entity *))entity_player_free;
 	player->draw = (void (*)(Entity *))entity_player_draw;
@@ -114,12 +114,13 @@ Entity *entity_player_init(Entity *player, void *extraData)
 	player->position.x = 0.0f;
 	player->position.z = 0.0f;
 	player->useGravity = 1;
-	entity_scale(player, vector3d(0.1f, 0.1f, 0.1f));
+	player->isStatic = 0;
+	entity_scale(player, vector3d(0.3f, 0.3f, 0.3f));
 	player->shape = cube_new(player->position.x, player->position.y, player->position.z, 3.0f, 3.0f, 3.0f);
 
 	vector3d_add(offset, player->position, offset);
 	playerEntity = player;
-	camera = gf3d_camera_init(windowWidth, windowHeight, &player->position, &player->rotation);
+	//camera = gf3d_camera_init(windowWidth, windowHeight, &player->position, &player->rotation);
 
 	return player;
 }
@@ -143,11 +144,14 @@ void entity_player_update(Entity *player, void *extraData)
 	entity_player_calculate_position(player);
 	//entity_player_calculate_rotation(player);
 
-	if (player->position.z <= -10.0f)
+	/*if (player->position.z <= -10.0f)
 	{
-		player->position = vector3d(0.0f, 0.0f, 0.0f);
-		player->useGravity = 1;
-	}
+		player->position.x = 0;
+		player->position.y = 0;
+		player->position.z = 0;
+		entity_player_calculate_position(player);
+		//player->useGravity = 1;
+	}*/
 
 	//gf3d_camera_update(camera);
 }

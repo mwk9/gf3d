@@ -1,6 +1,7 @@
 #include "entity.h"
 #include "ds_octree.h"
 #include "gf3d_vgraphics.h"
+#include "sound.h"
 
 typedef struct entityManager_s
 {
@@ -269,7 +270,9 @@ Entity *entity_load_from_file(char *filename)
 			float x, y, z;
 			sscanf(fileContents, " %f %f %f\n%n", &x, &y, &z, &n);
 			fileContents += n;
-			e->position = vector3d(x, y, z);
+			e->position.x = x;
+			e->position.y = y;
+			e->position.z = z;
 			continue;
 		}
 		if (strcmp(buffer, "scale:") == 0)
@@ -379,25 +382,25 @@ void entity_update(Entity *self)
 			}
 		}
 	}*/
+
+	if (self->rotation.x != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
+		self->rotation.x = 0.0f;
+	}
+	if (self->rotation.y != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
+		self->rotation.y = 0.0f;
+	}
+	if (self->rotation.z != 0.0f)
+	{
+		gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
+		self->rotation.z = 0.0f;
+	}
 	
 	if (!self->isStatic)
 	{
-		if (self->rotation.x != 0.0f)
-		{
-			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.x, rotationAxisX);
-			self->rotation.x = 0.0f;
-		}
-		if (self->rotation.y != 0.0f)
-		{
-			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.y, rotationAxisY);
-			self->rotation.y = 0.0f;
-		}
-		if (self->rotation.z != 0.0f)
-		{
-			gf3d_matrix_rotate(self->ubo->model, self->ubo->model, self->rotation.z, rotationAxisZ);
-			self->rotation.z = 0.0f;
-		}
-
 		//gravity and physics stuff goes here
 		if (self->useGravity)
 		{
@@ -406,6 +409,20 @@ void entity_update(Entity *self)
 				self->acceleration.z -= 0.001f;
 			}
 		}
+		if (self->position.z <= -15.0f)
+		{
+			self->velocity.x = 0;
+			self->velocity.y = 0;
+			self->velocity.z = 0;
+			self->position.x = 0;
+			self->position.y = 0;
+			self->position.z = 0;
+			if (self->id == 50)
+			{
+				sound_play_get_by_filepath("audio/sfx/sad_squeak.ogg", 0, 0, -1, 0);
+			}
+		}
+
 		vector3d_add(self->velocity, self->velocity, self->acceleration);
 		vector3d_add(self->position, self->velocity, self->acceleration);
 		if (self->shape)
@@ -442,6 +459,23 @@ void entity_update_all()
 	}
 
 	numCycles++;
+}
+
+Entity *entity_get_at_location(Uint32 id)
+{
+	if (id < 0 || id >= MAX_ENTITY_NUM)
+	{
+		slog("Error: Index (%i) is invalid", id);
+		return NULL;
+	}
+
+	if (entityManager.entityList[id].inUse > 0)
+	{
+		return &entityManager.entityList[id];
+	}
+
+	slog("Warning: Entity at index (%i) currently not in use", id);
+	return NULL;
 }
 
 /*void entity_set_draw_position(Entity *self, Vector3D position)

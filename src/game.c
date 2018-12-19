@@ -97,7 +97,8 @@ int main(int argc,char *argv[])
 	//test_ent2 = entity_load("cube");
 
 	dootdoot = sound_load("audio/rift.ogg", 15.0f, -1);
-	sound_load("audio/sfx/jump.ogg", 15.0f, -1);
+	sound_load("audio/sfx/jump.ogg", 10.0f, -1);
+	sound_load("audio/sfx/sad_squeak.ogg", 10.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
 
 	breadCollectable = entity_collectable_bread_init(NULL);
