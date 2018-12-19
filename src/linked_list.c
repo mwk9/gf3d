@@ -121,3 +121,23 @@ void ll_delete(LinkedList *ll)
 		free(curr);
 	}
 }
+
+unsigned int ll_count(LinkedList *ll)
+{
+	unsigned int count = 0;
+	LLNode *curr = NULL;
+
+	if (!ll)
+	{
+		return 0;
+	}
+
+	curr = ll->head;
+	while (curr)
+	{
+		curr = curr->next;
+		count++;
+	}
+
+	return count;
+}

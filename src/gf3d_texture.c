@@ -4,6 +4,7 @@
 #include "simple_logger.h"
 
 #include <SDL_image.h>
+#include <stdbool.h>
 
 
 typedef struct
@@ -203,7 +204,7 @@ void gf3d_texture_create_sampler(Texture *tex)
     slog("created texture sampler");
 }
 
-Texture *gf3d_texture_load(char *filename)
+/*Texture *gf3d_texture_load(char *filename)
 {
     SDL_Surface * surface, *surfaceRaw;
     void* data = NULL;
@@ -305,6 +306,181 @@ Texture *gf3d_texture_load(char *filename)
 	SDL_FreeSurface(surfaceRaw);
     slog("created texture for image: %s",filename);
     return tex;
+}*/
+
+void gf3d_texture_copy_staging_buffer_over_image_buffer(Texture *texture, uint8_t alreadyCopiedTo)
+{
+	VkImageLayout currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+	if (alreadyCopiedTo > 0)
+	{
+		currentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
+
+	gf3d_swapchain_transition_image_layout
+	(
+		texture->textureImage,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		currentLayout,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+	);
+
+	gf3d_texture_copy_buffer_to_image(texture->stagingBuffer, texture->textureImage, texture->width, texture->height);
+
+	gf3d_swapchain_transition_image_layout
+	(
+		texture->textureImage,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	);
+}
+
+uint32_t gf3d_texture_create_image(Texture *texture)
+{
+	static VkMemoryRequirements memoryRequirements;
+	static VkMemoryAllocateInfo allocInfo;
+	static VkImageCreateInfo imageInfo;
+	memset(&imageInfo, 0, sizeof(VkImageCreateInfo));
+	{
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = texture->width;
+		imageInfo.extent.height = texture->height;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.flags = 0; // Optional
+	}
+	if (vkCreateImage(gf3d_texture.device, &imageInfo, NULL, &texture->textureImage) != VK_SUCCESS)
+	{
+		return 1;
+	}
+	vkGetImageMemoryRequirements(gf3d_texture.device, texture->textureImage, &memoryRequirements);
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memoryRequirements.size;
+	allocInfo.memoryTypeIndex = gf3d_vgraphics_find_memory_type(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	if (vkAllocateMemory(gf3d_texture.device, &allocInfo, NULL, &texture->textureImageMemory) != VK_SUCCESS)
+	{
+		return 1;
+	}
+
+	vkBindImageMemory(gf3d_texture.device, texture->textureImage, texture->textureImageMemory, 0);
+	gf3d_texture_copy_staging_buffer_over_image_buffer(texture, 0);
+
+	texture->textureImageView = gf3d_vgraphics_create_image_view(texture->textureImage, VK_FORMAT_R8G8B8A8_UNORM);
+	gf3d_texture_create_sampler(texture);
+	return 0;
+}
+
+void gf3d_texture_transfer_surface_to_buffer(Texture *texture, SDL_Surface *surface)
+{
+	void *data;
+
+	SDL_LockSurface(surface);
+	vkMapMemory(gf3d_texture.device, texture->stagingBufferMemory, 0, texture->texturePixelDataSize, 0, &data);
+	memcpy(data, surface->pixels, texture->texturePixelDataSize);
+	vkUnmapMemory(gf3d_texture.device, texture->stagingBufferMemory);
+	SDL_UnlockSurface(surface);
+}
+
+void gf3d_texture_surface_update(Texture *texture, SDL_Surface *textureSurface)
+{
+	SDL_Surface *surface = textureSurface;
+
+	if (surface->format->format != SDL_PIXELFORMAT_ABGR8888)
+	{
+		surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ABGR8888, 0);
+	}
+
+	gf3d_texture_transfer_surface_to_buffer(texture, surface);
+	gf3d_texture_copy_staging_buffer_over_image_buffer(texture, 1);
+
+	if (surface != textureSurface)
+	{
+		SDL_FreeSurface(surface);
+	}
+}
+
+Texture *gf3d_texture_surface_create(SDL_Surface *textureSurface)
+{
+	Texture *texture = gf3d_texture_new();
+	SDL_Surface *surface = textureSurface;
+	gf3d_line_cpy(texture->filename, "new_texture");
+
+	if (surface->format->format != SDL_PIXELFORMAT_ABGR8888)
+	{
+		surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ABGR8888, 0);
+	}
+
+	texture->width = (uint32_t)surface->w;
+	texture->height = (uint32_t)surface->h;
+	texture->texturePixelDataSize = (VkDeviceSize)texture->width * texture->height * 4;
+
+	gf3d_vgraphics_create_buffer
+	(
+		texture->texturePixelDataSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&texture->stagingBuffer,
+		&texture->stagingBufferMemory
+	);
+
+	gf3d_texture_transfer_surface_to_buffer(texture, surface);
+
+	if (!gf3d_texture_create_image(texture))
+	{
+		if (surface != textureSurface)
+		{
+			SDL_FreeSurface(surface);
+		}
+		gf3d_texture_free(texture);
+		return NULL;
+	}
+
+	if (surface != textureSurface)
+	{
+		SDL_FreeSurface(surface);
+	}
+
+	return texture;
+}
+
+Texture *gf3d_texture_load(char *filename)
+{
+	SDL_Surface *surface;
+	Texture *texture = gf3d_texture_get_by_filename(filename);
+	if (texture)
+	{
+		texture->_refcount++;
+		return texture;
+	}
+
+	surface = IMG_Load(filename);
+	if (!surface)
+	{
+		slog("Error: Failed to load texture file (%s)", filename);
+		return NULL;
+	}
+
+	texture = gf3d_texture_surface_create(surface);
+	if (!texture)
+	{
+		SDL_FreeSurface(surface);
+		return NULL;
+	}
+
+	gf3d_line_cpy(texture->filename, filename);
+	SDL_FreeSurface(surface);
+	return texture;
 }
 
 /*eol@eof*/

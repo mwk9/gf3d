@@ -36,3 +36,22 @@ void entity_moving_platform_update(Entity *self)
 		}
 	}
 }
+
+Entity *entity_collectable_bread_init(void *extraData)
+{
+	Entity *bread = NULL;
+
+	bread = entity_load_from_file("def/collectable.def");
+	bread->isStatic = 1;
+	bread->update = (void(*)(Entity *))entity_collectable_bread_update;
+}
+
+void entity_collectable_bread_update(Entity *self)
+{
+	if (!self)
+	{
+		return;
+	}
+
+	self->rotation.x = 0.5f;
+}

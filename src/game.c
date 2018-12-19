@@ -28,6 +28,7 @@ int main(int argc,char *argv[])
 	Entity *test_ent = NULL;
 	Entity *test_ent2 = NULL;
 	Entity *floor = NULL;
+	Entity *breadCollectable = NULL;
 	float direction = 0.0f;
 	Sound *dootdoot = NULL;
 	Shape *s1 = NULL;
@@ -69,7 +70,7 @@ int main(int argc,char *argv[])
 	//test_ent = entity_load("pigeon", -1);
 	//test_ent = entity_new();
 	test_ent = entity_player_init(test_ent, NULL);
-	entity_load_from_file("def/test.txt");
+	//entity_load_from_file("def/test.txt");
 	//test_ent->position.x = 0.0f;
 	//test_ent->position.z = 0.0f;
 	//test_ent->useGravity = 1;
@@ -96,7 +97,10 @@ int main(int argc,char *argv[])
 	//test_ent2 = entity_load("cube");
 
 	dootdoot = sound_load("audio/rift.ogg", 15.0f, -1);
+	sound_load("audio/sfx/jump.ogg", 15.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
+
+	breadCollectable = entity_collectable_bread_init(NULL);
 
     while(!done)
     {

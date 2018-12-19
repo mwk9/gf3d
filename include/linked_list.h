@@ -55,4 +55,11 @@ void *ll_remove_head(LinkedList *ll);
  */
 void ll_delete(LinkedList *ll);
 
+/**
+ * @brief Gets the number of elements inside of the Linked List
+ * @param ll The Linked List to count from
+ * @returns The number of elements in the Linked List; 0 if Linked List was NULL or empty
+ */
+unsigned int ll_count(LinkedList *ll);
+
 #endif //!__LINKED_LIST__

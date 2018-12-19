@@ -174,6 +174,23 @@ void sound_play(Sound *sound, int numLoops, float volume, int channel, int group
 	Mix_PlayChannel(sound->defaultChannel, sound->sound, numLoops);
 }
 
+void sound_play_get_by_filepath(char *filepath, int numLoops, float volume, int channel, int group)
+{
+	int i = 0;
+
+	for (i = 0; i < soundManager.maxSounds; i++)
+	{
+		if (strncmp(soundManager.soundList[i].filepath, filepath, FILEPATH_CHAR_LEN) == 0)
+		{
+			sound_play(&soundManager.soundList[i], numLoops, volume, channel, group);
+			return;
+		}
+	}
+
+	slog("Warning: Could not find sound with filepath (%s)", filepath);
+	return;
+}
+
 void sound_adjust_volume(Sound *sound, float volume)
 {
 	if (!sound)

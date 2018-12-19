@@ -229,16 +229,18 @@ VkDescriptorSet * gf3d_model_get_descriptor_set_by_index(Model *model,Uint32 ind
 
 void gf3d_model_create_descriptor_pool(Model *model)
 {
-    VkDescriptorPoolSize poolSize[2] = {0};
+    VkDescriptorPoolSize poolSize[3] = {0};
     VkDescriptorPoolCreateInfo poolInfo = {0};
     slog("attempting to make descriptor pools of size %i",gf3d_model.chain_length);
     poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     poolSize[0].descriptorCount = gf3d_model.chain_length;
     poolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSize[1].descriptorCount = gf3d_model.chain_length;
+	poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSize[2].descriptorCount = gf3d_model.chain_length;
     
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 2;
+    poolInfo.poolSizeCount = 3;
     poolInfo.pPoolSizes = poolSize;
     poolInfo.maxSets = gf3d_model.chain_length;
     
@@ -255,15 +257,23 @@ void gf3d_model_create_descriptor_set_layout()
     VkDescriptorSetLayoutBinding uboLayoutBinding = {0};
     VkDescriptorSetLayoutBinding samplerLayoutBinding = {0};
     
-    VkDescriptorSetLayoutBinding bindings[2];
+    VkDescriptorSetLayoutBinding bindings[3];
     
-    samplerLayoutBinding.binding = 1;
+    samplerLayoutBinding.binding = 2;
     samplerLayoutBinding.descriptorCount = 1;
     samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     samplerLayoutBinding.pImmutableSamplers = NULL;
     samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     
-    memcpy(&bindings[1],&samplerLayoutBinding,sizeof(VkDescriptorSetLayoutBinding));
+    memcpy(&bindings[2],&samplerLayoutBinding,sizeof(VkDescriptorSetLayoutBinding));
+
+	uboLayoutBinding.binding = 1;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = NULL; // Optional
+
+	memcpy(&bindings[1], &uboLayoutBinding, sizeof(VkDescriptorSetLayoutBinding));
 
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
@@ -274,7 +284,7 @@ void gf3d_model_create_descriptor_set_layout()
     memcpy(&bindings[0],&uboLayoutBinding,sizeof(VkDescriptorSetLayoutBinding));
 
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 2;
+    layoutInfo.bindingCount = 3;
     layoutInfo.pBindings = bindings;
 
     if (vkCreateDescriptorSetLayout(gf3d_model.device, &layoutInfo, NULL, &gf3d_model.descriptorSetLayout) != VK_SUCCESS)

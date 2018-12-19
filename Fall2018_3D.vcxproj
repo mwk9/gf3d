@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClInclude Include="include\ds_octree.h" />
     <ClInclude Include="include\entity.h" />
+    <ClInclude Include="include\entity_ui.h" />
     <ClInclude Include="include\gf3d_camera.h" />
     <ClInclude Include="include\gf3d_commands.h" />
     <ClInclude Include="include\gf3d_extensions.h" />
@@ -113,11 +114,13 @@
     <ClInclude Include="include\shape.h" />
     <ClInclude Include="include\simple_logger.h" />
     <ClInclude Include="include\sound.h" />
+    <ClInclude Include="include\ui.h" />
     <ClInclude Include="include\uniforms.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ds_octree.c" />
     <ClCompile Include="src\entity.c" />
+    <ClCompile Include="src\entity_ui.c" />
     <ClCompile Include="src\game.c" />
     <ClCompile Include="src\gf3d_camera.c" />
     <ClCompile Include="src\gf3d_commands.c" />
@@ -143,6 +146,7 @@
     <ClCompile Include="src\shape.c" />
     <ClCompile Include="src\simple_logger.c" />
     <ClCompile Include="src\sound.c" />
+    <ClCompile Include="src\ui.c" />
     <ClCompile Include="src\uniforms.c" />
   </ItemGroup>
   <ItemGroup>

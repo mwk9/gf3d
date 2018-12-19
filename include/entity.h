@@ -10,6 +10,7 @@
 #include "gf3d_model.h"
 #include "shape.h"
 #include "multitree.h"
+#include "sound.h"
 #include "simple_logger.h"
 
 #define MAX_CHARS 32

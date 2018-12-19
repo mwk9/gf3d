@@ -126,16 +126,28 @@ Entity *entity_player_init(Entity *player, void *extraData)
 
 void entity_player_update(Entity *player, void *extraData)
 {
+	if (!player)
+	{
+		return;
+	}
+
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	Uint8 keySpacebar = keys[SDL_SCANCODE_SPACE];
 
 	if (keySpacebar && !player->useGravity)
 	{
 		player->acceleration.z = 0.05;
+		sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
 	}
 
 	entity_player_calculate_position(player);
-	entity_player_calculate_rotation(player);
+	//entity_player_calculate_rotation(player);
+
+	if (player->position.z <= -10.0f)
+	{
+		player->position = vector3d(0.0f, 0.0f, 0.0f);
+		player->useGravity = 1;
+	}
 
 	//gf3d_camera_update(camera);
 }
