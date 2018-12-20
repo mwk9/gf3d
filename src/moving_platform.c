@@ -3,6 +3,7 @@
 
 static Entity *player = NULL;
 static Uint8 playerOnCube = 0;
+static Uint32 keyCount = 0;
 
 void extra_entity_setup()
 {
@@ -26,6 +27,7 @@ Entity *entity_moving_platform_init(void *extraData)
 void entity_moving_platform_collide_with_player(Entity *self, Uint32 playerID)
 {
 	//Entity *player = NULL;
+	static Uint8 canSpawnKey = 1;
 
 	if (!self)
 	{
@@ -48,6 +50,13 @@ void entity_moving_platform_collide_with_player(Entity *self, Uint32 playerID)
 		player->useGravity = 0;
 		player->onGround = 1;
 		playerOnCube = 1;
+		if (keyCount > 0 && canSpawnKey > 0)
+		{
+			keyCount--;
+			canSpawnKey = 0;
+			//entity_free(self);
+			entity_collectable_bread_init(vector3d(0.0f, 4.0f, 0.0f));
+		}
 	}
 	else
 	{
@@ -223,4 +232,67 @@ void entity_button_update(Entity *self)
 	}*/
 
 	entity_button_collide_with_player(self);
+}
+
+void entity_collectable_key_init(Vector3D position)
+{
+	Entity *key = NULL;
+
+	key = entity_load_from_file("def/key.def");
+	key->isStatic = 1;
+	key->useGravity = 0;
+	key->position.x = position.x;
+	key->position.y = position.y;
+	key->position.z = position.z;
+	key->shape->shape.cube.x = key->position.x;
+	key->shape->shape.cube.y = key->position.y;
+	key->shape->shape.cube.z = key->position.z;
+	key->update = (void(*)(Entity *))entity_collectable_key_update;
+
+	return key;
+}
+
+void entity_collectable_key_collide_with_player(Entity *self)
+{
+	if (!self)
+	{
+		return;
+	}
+	if (!self->inUse)
+	{
+		return;
+	}
+	if (!player)
+	{
+		return;
+	}
+
+	if (cube_in_cube(&self->shape->shape.cube, &player->shape->shape.cube))
+	{
+		slog("Player touched key!");
+		sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
+		entity_free(self);
+		keyCount++;
+	}
+}
+
+void entity_collectable_key_update(Entity *self)
+{
+	if (!self)
+	{
+		return;
+	}
+	if (!self->inUse)
+	{
+		return;
+	}
+
+	self->rotation.y = -0.005f;
+	if (self->shape)
+	{
+		self->shape->shape.cube.x = self->position.x;
+		self->shape->shape.cube.y = self->position.y;
+		self->shape->shape.cube.z = self->position.z;
+	}
+	entity_collectable_key_collide_with_player(self);
 }

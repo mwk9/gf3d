@@ -17,6 +17,20 @@
 #include "sound.h"
 #include "linked_list.h"
 
+void agumon_update(Entity *self)
+{
+	if (!self)
+	{
+		return;
+	}
+	if (!self->inUse)
+	{
+		return;
+	}
+
+	self->rotation.y = 0.075f;
+}
+
 int main(int argc,char *argv[])
 {
     int done = 0;
@@ -106,10 +120,11 @@ int main(int argc,char *argv[])
 	breadCollectable = entity_collectable_bread_init(vector3d(-10.0f, -10.0f, -3.0f));
 	entity_collectable_bread_init(vector3d(30.0f, -30.0f, -3.0f));
 	entity_button_init(vector3d(0.0f, -10.0f, -4.0f));
+	entity_collectable_key_init(vector3d(-20, -10, -3.0f));
 
     while(!done)
     {
-		if (test_ent)
+		/*if (test_ent)
 		{
 			//test_ent->position.y -= 1;
 			//test_ent->rotation.z = 0.05f;
@@ -119,7 +134,7 @@ int main(int argc,char *argv[])
 			//test_ent2->rotation.x = 0.1f;
 			test_ent2->position.x -= 0.1f;
 			test_ent2->rotation.y = 0.075f;
-		}
+		}*/
 		//test_ent2->rotation.y -= 0.05f;
 		//test_ent2->rotation.z -= 0.1f;
         SDL_PumpEvents();   // update SDL's internal event structures
@@ -188,6 +203,7 @@ int main(int argc,char *argv[])
 		{
 			test_ent2 = entity_load("agumon", -1);
 			test_ent2->useGravity = 1;
+			test_ent2->update = (void(*)(Entity *))agumon_update;
 			test_ent2->shape = cube_new(test_ent2->position.x, test_ent2->position.y, test_ent2->position.z, 3.0f, 3.0f, 3.0f);
 			//entity_set_draw_position(test_ent, vector3d(0.0f,0.0f,0.0f));
 			entity_load("cube", -1)->velocity.x = rand() % 7;

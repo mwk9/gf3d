@@ -15,4 +15,7 @@ void entity_collectable_bread_update(Entity *self);
 Entity *entity_button_init(Vector3D position);
 void entity_button_update(Entity *self);
 
+void entity_collectable_key_init(Vector3D position);
+void entity_collectable_key_update(Entity *self);
+
 #endif //!__MOVING_PLATFORM__
