@@ -69,7 +69,7 @@ int main(int argc,char *argv[])
 	shape_system_init(MAX_ENTITY_NUM * 2);
 	audio_system_init(MAX_SOUND_NUM, MAX_CHANNEL_NUM, 0, 0, 1, 1);
     gf3d_vgraphics_init(
-        "gf3d",                 //program name
+        "bird_and_bread",                 //program name
         1200,                   //screen width
         700,                    //screen height
         vector4d(0.51,0.75,1,1),//background color
@@ -111,10 +111,12 @@ int main(int argc,char *argv[])
 	//test_ent->rotation = vector3d(0.0f, 1.0f, 0.0f);
 	//test_ent2 = entity_load("cube");
 
-	dootdoot = sound_load("audio/rift.ogg", 15.0f, -1);
+	dootdoot = sound_load("audio/rift.ogg", 10.0f, -1);
 	sound_load("audio/sfx/jump.ogg", 10.0f, -1);
 	sound_load("audio/sfx/sad_squeak.ogg", 10.0f, -1);
 	sound_load("audio/sfx/eat.ogg", 20.0f, -1);
+	sound_load("audio/sfx/key.ogg", 25.0f, -1);
+	sound_load("audio/sfx/yay.ogg", 100.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
 
 	breadCollectable = entity_collectable_bread_init(vector3d(-10.0f, -10.0f, -3.0f));

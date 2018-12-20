@@ -55,6 +55,7 @@ void entity_moving_platform_collide_with_player(Entity *self, Uint32 playerID)
 			keyCount--;
 			canSpawnKey = 0;
 			//entity_free(self);
+			sound_play_get_by_filepath("audio/sfx/yay.ogg", 0, 0, -1, 0);
 			entity_collectable_bread_init(vector3d(0.0f, 4.0f, 0.0f));
 		}
 	}
@@ -207,8 +208,9 @@ void entity_button_collide_with_player(Entity *self)
 	if (cube_in_cube(&self->shape->shape.cube, &player->shape->shape.cube))
 	{
 		slog("Player touched button!");
-		sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
+		//sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
 		entity_free(self);
+		sound_play_get_by_filepath("audio/sfx/yay.ogg", 0, 0, -1, 0);
 		entity_collectable_bread_init(vector3d(2.0f, 2.0f, -3.0f));
 	}
 }
@@ -270,7 +272,7 @@ void entity_collectable_key_collide_with_player(Entity *self)
 	if (cube_in_cube(&self->shape->shape.cube, &player->shape->shape.cube))
 	{
 		slog("Player touched key!");
-		sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
+		sound_play_get_by_filepath("audio/sfx/key.ogg", 0, 0, -1, 0);
 		entity_free(self);
 		keyCount++;
 	}
