@@ -349,6 +349,11 @@ void entity_update(Entity *self)
 	{
 		self->update(self);
 	}
+	if (self->inUse == 0)
+	{
+		slog("Entity was destroyed in update function. Exiting...");
+		return;
+	}
 
 
 	//gf3d_matrix_identity(self->ubo->model);
@@ -424,7 +429,16 @@ void entity_update(Entity *self)
 		}
 
 		vector3d_add(self->velocity, self->velocity, self->acceleration);
-		vector3d_add(self->position, self->velocity, self->acceleration);
+		if (!(self->velocity.x == 0.0f &&
+			self->velocity.y == 0.0f &&
+			self->velocity.z == 0.0f &&
+			self->acceleration.x == 0.0f &&
+			self->acceleration.y == 0.0f &&
+			self->acceleration.z == 0.0f))
+		{
+			vector3d_add(self->position, self->velocity, self->acceleration);
+		}
+		
 		if (self->shape)
 		{
 			self->shape->shape.cube.x = self->position.x;
@@ -444,6 +458,7 @@ void entity_update(Entity *self)
 			sizeof(Entity)
 		);
 	}
+	self->onGround = 0;
 }
 
 void entity_update_all()
@@ -459,23 +474,6 @@ void entity_update_all()
 	}
 
 	numCycles++;
-}
-
-Entity *entity_get_at_location(Uint32 id)
-{
-	if (id < 0 || id >= MAX_ENTITY_NUM)
-	{
-		slog("Error: Index (%i) is invalid", id);
-		return NULL;
-	}
-
-	if (entityManager.entityList[id].inUse > 0)
-	{
-		return &entityManager.entityList[id];
-	}
-
-	slog("Warning: Entity at index (%i) currently not in use", id);
-	return NULL;
 }
 
 /*void entity_set_draw_position(Entity *self, Vector3D position)
@@ -589,11 +587,17 @@ Entity *entity_get_by_id(Uint32 id)
 {
 	if (id < 0 || id >= MAX_ENTITY_NUM)
 	{
-		slog("Error: Requesting an Entity that is out of range.");
+		slog("Error: Index (%i) is invalid", id);
 		return NULL;
 	}
 
-	return &entityManager.entityList[id];
+	if (entityManager.entityList[id].inUse > 0)
+	{
+		return &entityManager.entityList[id];
+	}
+
+	slog("Warning: Entity at index (%i) currently not in use", id);
+	return NULL;
 }
 
 void TEST_entity_collides_with_floor(Entity *self, Entity *floor)
@@ -611,6 +615,10 @@ void TEST_entity_collides_with_floor(Entity *self, Entity *floor)
 	{
 		self->acceleration = vector3d(0.0f, 0.0f, 0.0f);
 		self->useGravity = 0;
+		if (self->id == 50)
+		{
+			self->onGround = 1;
+		}
 	}
 	else
 	{

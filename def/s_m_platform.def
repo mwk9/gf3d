@@ -2,6 +2,8 @@ name:		MovingPlatform
 model:		cube
 shape:		cube
 1.0 1.0 1.0
+position: 
+0.0 -10.0 -3.0
 speed:		1.0
 useGravity:	0
 ~

@@ -34,6 +34,7 @@ typedef struct entity_s
 	Uint8 testNum;
 	Shape *shape;
 	Uint8 isStatic;
+	Uint8 onGround;
 
 	//Mesh data
 	Uint32 bufferFrame;
@@ -110,13 +111,6 @@ void entity_update(Entity *self);
  * @brief Runs entity_update on every existing entity
  */
 void entity_update_all();
-
-/**
-* @brief Gets the reference to an Entity at a specifc location in the Entity Manager
-* @param id The ID of the Entity to search for
-* @returns A pointer to the requested Entity if it is in use, NULL if it is not in use
-*/
-Entity *entity_get_at_location(Uint32 id);
 
 /**
  * TODO: comment this function

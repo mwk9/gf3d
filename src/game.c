@@ -70,6 +70,7 @@ int main(int argc,char *argv[])
 	//test_ent = entity_load("pigeon", -1);
 	//test_ent = entity_new();
 	test_ent = entity_player_init(test_ent, NULL);
+	extra_entity_setup();
 	//entity_load_from_file("def/test.txt");
 	//test_ent->position.x = 0.0f;
 	//test_ent->position.z = 0.0f;
@@ -99,9 +100,12 @@ int main(int argc,char *argv[])
 	dootdoot = sound_load("audio/rift.ogg", 15.0f, -1);
 	sound_load("audio/sfx/jump.ogg", 10.0f, -1);
 	sound_load("audio/sfx/sad_squeak.ogg", 10.0f, -1);
+	sound_load("audio/sfx/eat.ogg", 20.0f, -1);
 	sound_play(dootdoot, -1, 0, -1, 0);
 
-	breadCollectable = entity_collectable_bread_init(NULL);
+	breadCollectable = entity_collectable_bread_init(vector3d(-10.0f, -10.0f, -3.0f));
+	entity_collectable_bread_init(vector3d(30.0f, -30.0f, -3.0f));
+	entity_button_init(vector3d(0.0f, -10.0f, -4.0f));
 
     while(!done)
     {

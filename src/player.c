@@ -137,7 +137,7 @@ void entity_player_update(Entity *player, void *extraData)
 
 	if (keySpacebar && !player->useGravity)
 	{
-		player->acceleration.z = 0.05;
+		player->acceleration.z = 0.10;
 		sound_play_get_by_filepath("audio/sfx/jump.ogg", 0, 0, -1, 0);
 	}
 

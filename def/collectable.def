@@ -1,7 +1,7 @@
 name:		Collectable
 model:		bread
 shape:		cube
-10.0 10.0 1.0
+3.0 3.0 3.0
 position: 
 0.0 0.0 0.0
 scale: 
